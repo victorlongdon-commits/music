@@ -79,6 +79,8 @@ display:grid;
 grid-template-columns:repeat(auto-fill, minmax(180px, 1fr));
 gap:20px;
 padding:20px 30px 40px;
+width:100%;
+align-items:start;
 }
 
 .albumCard{
@@ -89,7 +91,7 @@ transition:.3s;
 background:rgba(255,255,255,.04);
 border:1px solid rgba(255,255,255,.08);
 position:relative;
-group:true;
+height:fit-content;
 }
 
 .albumCard:hover{ transform:scale(1.04); border-color:rgba(124,92,255,.5); }
@@ -149,17 +151,20 @@ transition:.3s;
 font-size:13px;
 opacity:.5;
 gap:10px;
+height:fit-content;
 }
 
 .addAlbumCard:hover{ opacity:1; border-color:#7c5cff; }
 .addAlbumCard span{ font-size:32px; }
 
-/* FOTOS GRID */
+/* FOTOCARDS GRID — CORRIGIDO */
 .cardsGrid{
 display:grid;
 grid-template-columns:repeat(auto-fill, minmax(160px, 1fr));
 gap:16px;
 padding:16px 30px 40px;
+width:100%;
+align-items:start; /* ← impede stretch vertical que causava o bug */
 }
 
 .photoCard{
@@ -170,6 +175,7 @@ transition:.3s;
 position:relative;
 background:rgba(255,255,255,.04);
 border:1px solid rgba(255,255,255,.08);
+height:fit-content; /* ← cada card ocupa só sua altura natural */
 }
 
 .photoCard:hover{ transform:scale(1.03); }
@@ -240,6 +246,7 @@ transition:.3s;
 font-size:12px;
 opacity:.5;
 gap:8px;
+height:fit-content;
 }
 
 .addPhotoCard:hover{ opacity:1; border-color:#7c5cff; }
@@ -769,7 +776,6 @@ setupDrop("cardsDropZone", "cardsInput", files => {
       <span>${f.name}</span>
     </div>
   `).join("")
-  // Reseta o input para permitir selecionar os mesmos arquivos novamente
   document.getElementById("cardsInput").value = ""
 })
 
