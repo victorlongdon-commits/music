@@ -91,8 +91,8 @@ nav{
 
 /* ÁLBUNS GRID */
 .albums-grid{
-  display:flex;
-  flex-wrap:wrap;
+  display:grid;
+  grid-template-columns:repeat(auto-fill, 190px);
   gap:20px;
 }
 
@@ -105,7 +105,6 @@ nav{
   background:#111120;
   border:1px solid rgba(255,255,255,.06);
   transition:.3s;
-  flex-shrink:0;
 }
 .album-card:hover{
   transform:translateY(-5px);
@@ -181,7 +180,6 @@ nav{
   font-size:13px;
   gap:10px;
   transition:.3s;
-  flex-shrink:0;
 }
 .add-card:hover{
   border-color:rgba(255,255,255,.3);
@@ -193,9 +191,9 @@ nav{
   line-height:1;
 }
 /* height para álbum igual ao card */
-.albums-grid .add-card{ height:242px; }
-
-/* FOTOCARDS GRID */
+.albums-grid .add-card{ height:242px; width:190px; }
+/* height para fotocard igual ao card */
+.cards-grid .add-card{ height:249px; width:150px; }
 .cards-section-header{
   display:flex;
   align-items:center;
@@ -205,8 +203,8 @@ nav{
 .cards-count{ font-size:13px; opacity:.3; letter-spacing:1px; }
 
 .cards-grid{
-  display:flex;
-  flex-wrap:wrap;
+  display:grid;
+  grid-template-columns:repeat(auto-fill, 150px);
   gap:14px;
 }
 
@@ -218,7 +216,6 @@ nav{
   cursor:pointer;
   border:1px solid rgba(255,255,255,.06);
   transition:.3s;
-  flex-shrink:0;
   background:#111120;
 }
 .fotocard:hover{
@@ -261,9 +258,6 @@ nav{
 }
 .fotocard:hover .fotocard-del{ opacity:1; }
 .fotocard-del:hover{ background:rgba(200,0,0,.6); }
-
-/* add fotocard height = card */
-.cards-grid .add-card{ height:249px; width:150px; }
 
 /* LIGHTBOX */
 .lightbox{
