@@ -7,6 +7,8 @@
 
 <style>
 
+*{ box-sizing:border-box; }
+
 body{
 margin:0;
 font-family:Arial;
@@ -16,10 +18,8 @@ color:white;
 
 #bg{
 position:absolute;
-top:0;
-left:0;
-width:100%;
-height:100%;
+top:0; left:0;
+width:100%; height:100%;
 background-size:cover;
 background-position:center;
 filter:blur(35px) brightness(0.4);
@@ -30,10 +30,8 @@ transition:1s;
 
 .overlay{
 position:absolute;
-top:0;
-left:0;
-width:100%;
-height:100%;
+top:0; left:0;
+width:100%; height:100%;
 background:rgba(0,0,0,.4);
 z-index:-1;
 }
@@ -45,6 +43,7 @@ justify-content:space-between;
 align-items:center;
 padding:0 20px;
 border-bottom:1px solid rgba(255,255,255,.1);
+gap:10px;
 }
 
 .search{
@@ -64,8 +63,7 @@ align-items:center;
 }
 
 #navAvatar{
-width:40px;
-height:40px;
+width:40px; height:40px;
 border-radius:50%;
 object-fit:cover;
 cursor:pointer;
@@ -94,8 +92,7 @@ opacity:.7;
 }
 
 .card{
-width:200px;
-height:240px;
+width:200px; height:240px;
 border-radius:20px;
 overflow:hidden;
 opacity:.4;
@@ -104,28 +101,20 @@ transition:.4s;
 }
 
 .card img{
-width:100%;
-height:100%;
+width:100%; height:100%;
 object-fit:cover;
 }
 
 .center{
-width:320px;
-height:380px;
+width:320px; height:380px;
 opacity:1;
 transform:scale(1);
 box-shadow:0 0 80px rgba(255,255,255,.15);
 }
 
-.title{
-margin-top:20px;
-font-size:26px;
-}
+.title{ margin-top:20px; font-size:26px; }
 
-#bar{
-width:400px;
-margin-top:10px;
-}
+#bar{ width:400px; margin-top:10px; }
 
 #play{
 font-size:42px;
@@ -141,51 +130,140 @@ border-radius:10px;
 cursor:pointer;
 }
 
-#profileModal{
+/* MODAL BASE */
+.modal{
 position:fixed;
 inset:0;
-background:rgba(0,0,0,.8);
+background:rgba(0,0,0,.85);
 display:none;
 z-index:999;
+justify-content:center;
+align-items:center;
 }
 
-.profileBox{
-width:420px;
-margin:60px auto;
+.modalBox{
 background:#111;
-border-radius:15px;
-padding:15px;
+border-radius:20px;
+padding:30px;
+width:460px;
+max-height:90vh;
+overflow-y:auto;
 }
 
-#banner{
+.modalBox h2{ margin-bottom:20px; }
+
+.dropZone{
+border:2px dashed rgba(255,255,255,.3);
+border-radius:15px;
+padding:30px;
+text-align:center;
+cursor:pointer;
+transition:.3s;
+margin-bottom:15px;
+}
+
+.dropZone:hover{ border-color:white; background:rgba(255,255,255,.05); }
+
+.dropZone.over{ border-color:#7c5cff; background:rgba(124,92,255,.1); }
+
+.dropZone p{ opacity:.6; font-size:14px; margin-top:8px; }
+
+.previewImg{
+width:80px; height:80px;
+border-radius:10px;
+object-fit:cover;
+margin-top:10px;
+display:none;
+}
+
+.inputField{
+width:100%;
+padding:12px;
+border-radius:10px;
+border:none;
+background:#1a1a1a;
+color:white;
+font-size:15px;
+margin-bottom:12px;
+}
+
+.btnRow{
+display:flex;
+gap:10px;
+margin-top:10px;
+}
+
+.btnPrimary{
+flex:1;
+padding:12px;
+border:none;
+border-radius:10px;
+background:#7c5cff;
+color:white;
+font-size:15px;
+cursor:pointer;
+}
+
+.btnSecondary{
+flex:1;
+padding:12px;
+border:none;
+border-radius:10px;
+background:#333;
+color:white;
+font-size:15px;
+cursor:pointer;
+}
+
+.progressBar{
+width:100%;
+height:4px;
+background:rgba(255,255,255,.1);
+border-radius:99px;
+overflow:hidden;
+margin-top:10px;
+display:none;
+}
+
+.progressFill{
+height:100%;
+background:#7c5cff;
+width:0%;
+transition:.3s;
+}
+
+/* PERFIL */
+.profileBanner{
 height:120px;
 background:#333;
 border-radius:10px;
 background-size:cover;
 background-position:center;
+margin-bottom:15px;
 }
 
 .profileTop{
 display:flex;
 align-items:center;
 gap:15px;
-margin-top:10px;
+margin-bottom:15px;
 }
 
 .profilePic{
-width:80px;
-height:80px;
+width:80px; height:80px;
 border-radius:50%;
 object-fit:cover;
 }
 
 .smallBtn{
-padding:8px 10px;
-margin-top:10px;
+padding:8px 14px;
+margin-top:8px;
 border-radius:8px;
 cursor:pointer;
+margin-right:6px;
 }
 
+/* LOADING */
 #loadingScreen{
 position:fixed;
 inset:0;
@@ -212,7 +290,6 @@ transition:1.5s;
 <div class="overlay"></div>
 
 <nav>
-  <button id="adminBtn" style="display:none;" onclick="addMusic()">+ MUSICA</button>
   ☰
   <input class="search" id="search" placeholder="Search">
   <div class="menu">
@@ -221,6 +298,7 @@ transition:1.5s;
     <div>ÁLBUNS</div>
     <img id="navAvatar" onclick="openProfile()" src="https://via.placeholder.com/40">
   </div>
+  <button id="adminBtn" style="display:none;" onclick="openAddMusic()">+ MÚSICA</button>
   <button id="removeBtn" style="display:none;" onclick="removeMusicPrompt()">- REMOVER</button>
   <button onclick="checkAdmin()">ADMIN</button>
 </nav>
@@ -241,19 +319,82 @@ transition:1.5s;
 
 <audio id="music"></audio>
 
-<div id="profileModal">
-  <div class="profileBox">
-    <div id="banner"></div>
+<!-- MODAL ADICIONAR MÚSICA -->
+<div class="modal" id="addMusicModal">
+  <div class="modalBox">
+    <h2>➕ Adicionar Música</h2>
+
+    <label>Nome da música</label>
+    <input class="inputField" id="musicName" placeholder="Ex: Butter">
+
+    <label>Arquivo de áudio</label>
+    <div class="dropZone" id="audioZone" onclick="document.getElementById('audioInput').click()">
+      🎵 Arraste o MP3 aqui ou clique para selecionar
+      <p id="audioName">Nenhum arquivo</p>
+    </div>
+    <input type="file" id="audioInput" accept="audio/*" style="display:none">
+
+    <label>Capa do álbum</label>
+    <div class="dropZone" id="coverZone" onclick="document.getElementById('coverInput').click()">
+      🖼️ Arraste a imagem aqui ou clique para selecionar
+      <p id="coverName">Nenhum arquivo</p>
+      <img class="previewImg" id="coverPreview">
+    </div>
+    <input type="file" id="coverInput" accept="image/*" style="display:none">
+
+    <div class="progressBar" id="uploadProgress">
+      <div class="progressFill" id="uploadFill"></div>
+    </div>
+    <p id="uploadStatus" style="font-size:13px;opacity:.6;margin-top:6px;"></p>
+
+    <div class="btnRow">
+      <button class="btnPrimary" onclick="submitMusic()">SALVAR PARA TODOS</button>
+      <button class="btnSecondary" onclick="closeModal('addMusicModal')">CANCELAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PERFIL -->
+<div class="modal" id="profileModal">
+  <div class="modalBox">
+    <h2>👤 Perfil</h2>
+    <div class="profileBanner" id="bannerDiv"></div>
+
     <div class="profileTop">
       <img id="profilePic" class="profilePic">
       <h3 id="profileName"></h3>
     </div>
-    <button class="smallBtn" onclick="editProfile()">Editar Perfil</button>
-    <button class="smallBtn" onclick="closeProfile()">Fechar</button>
-    <hr>
-    <p>Músicas mais ouvidas:</p>
+
+    <label>Foto de perfil</label>
+    <div class="dropZone" id="picZone" onclick="document.getElementById('picInput').click()">
+      🖼️ Arraste ou clique para trocar foto
+      <p id="picFileName">Nenhum arquivo</p>
+    </div>
+    <input type="file" id="picInput" accept="image/*" style="display:none">
+
+    <label style="margin-top:10px;display:block;">Banner</label>
+    <div class="dropZone" id="bannerZone" onclick="document.getElementById('bannerInput').click()">
+      🖼️ Arraste ou clique para trocar banner
+      <p id="bannerFileName">Nenhum arquivo</p>
+    </div>
+    <input type="file" id="bannerInput" accept="image/*" style="display:none">
+
+    <div class="progressBar" id="profileProgress">
+      <div class="progressFill" id="profileFill"></div>
+    </div>
+    <p id="profileStatus" style="font-size:13px;opacity:.6;margin-top:6px;"></p>
+
+    <input class="inputField" id="profileNameInput" placeholder="Seu nome" style="margin-top:15px;">
+
+    <hr style="margin:15px 0;opacity:.2;">
+    <p style="opacity:.6;font-size:14px;">Músicas mais ouvidas:</p>
     <ul id="topSongs"></ul>
-    <p>Tempo ouvindo: <span id="totalTime">0</span>s</p>
+    <p style="opacity:.6;font-size:14px;margin-top:10px;">Tempo ouvindo: <span id="totalTime">0</span>s</p>
+
+    <div class="btnRow">
+      <button class="btnPrimary" onclick="saveProfile()">SALVAR</button>
+      <button class="btnSecondary" onclick="closeModal('profileModal')">FECHAR</button>
+    </div>
   </div>
 </div>
 
@@ -269,15 +410,37 @@ const firebaseConfig = {
   projectId: "bts-archive-63f8b",
   storageBucket: "bts-archive-63f8b.firebasestorage.app",
   messagingSenderId: "995910359395",
-  appId: "1:995910359395:web:faa0858e7a44cf101f9b56",
-  measurementId: "G-09CSXZG129"
+  appId: "1:995910359395:web:faa0858e7a44cf101f9b56"
 }
 
 const app = initializeApp(firebaseConfig)
 const db = getDatabase(app)
 const songsRef = ref(db, "songs")
 
-// Músicas padrão (só adiciona se o banco estiver vazio)
+const CLOUDINARY_CLOUD = "dlcg5zzes"
+const CLOUDINARY_PRESET = "bts_upload"
+
+// Estado
+let songs = []
+let current = 0
+let queue = []
+let audioFile = null
+let coverFile = null
+let picFile = null
+let bannerFile = null
+
+let profile = JSON.parse(localStorage.getItem("profile")) || {
+  name: localStorage.getItem("userName") || "Seu Nome",
+  pic: "https://via.placeholder.com/80",
+  banner: ""
+}
+let totalTime = Number(localStorage.getItem("totalTime")) || 0
+
+const player = document.getElementById("music")
+const bar = document.getElementById("bar")
+const playBtn = document.getElementById("play")
+
+// Músicas padrão
 const defaultSongs = [
   { name:"Euphoria", audio:"music/euphoria.mp3", cover:"covers/euphoria.jpg" },
   { name:"Dynamite", audio:"music/dynamite.mp3", cover:"covers/dynamite.jpg" },
@@ -293,89 +456,46 @@ const defaultSongs = [
   { name:"they dont know bout us", audio:"music/they dont know bout us.mp3", cover:"covers/they dont know bout us.jpg" }
 ]
 
-let songs = []
-let current = 0
-let queue = []
-let adminMode = false
-const ADMIN_KEY = "12345"
-
-const player = document.getElementById("music")
-const mainImg = document.getElementById("main")
-const leftImg = document.getElementById("left")
-const rightImg = document.getElementById("right")
-const titleEl = document.getElementById("title")
-const bgEl = document.getElementById("bg")
-const bar = document.getElementById("bar")
-const playBtn = document.getElementById("play")
-const loadingScreen = document.getElementById("loadingScreen")
-
-let profile = JSON.parse(localStorage.getItem("profile")) || {
-  name: localStorage.getItem("userName") || "Seu Nome",
-  pic: "https://via.placeholder.com/80",
-  banner: ""
-}
-let totalTime = Number(localStorage.getItem("totalTime")) || 0
-
-// Inicializa banco com músicas padrão se vazio
 get(songsRef).then(snapshot => {
   if(!snapshot.exists()){
     defaultSongs.forEach(s => push(songsRef, s))
   }
 })
 
-// Escuta mudanças em tempo real
 onValue(songsRef, (snapshot) => {
   songs = []
   snapshot.forEach(child => {
     songs.push({ id: child.key, ...child.val() })
   })
   if(songs.length > 0){
-    // Esconde loading
-    loadingScreen.style.opacity = "0"
-    setTimeout(()=>{ loadingScreen.style.display = "none" }, 1500)
-
-    // Continua música de onde parou
+    document.getElementById("loadingScreen").style.opacity = "0"
+    setTimeout(()=>{ document.getElementById("loadingScreen").style.display = "none" }, 1500)
     const savedTime = Number(localStorage.getItem("continueMusic") || 0)
+    localStorage.removeItem("continueMusic")
     load(savedTime)
   }
 })
 
 function load(savedTime = 0){
-  if(songs.length === 0) return
+  if(!songs.length) return
   const song = songs[current]
   player.src = song.audio
-  mainImg.src = song.cover
-  titleEl.innerText = song.name
-  leftImg.src = songs[(current + songs.length - 1) % songs.length].cover
-  rightImg.src = songs[(current + 1) % songs.length].cover
-  bgEl.style.backgroundImage = `url(${song.cover})`
+  document.getElementById("main").src = song.cover
+  document.getElementById("title").innerText = song.name
+  document.getElementById("left").src = songs[(current - 1 + songs.length) % songs.length].cover
+  document.getElementById("right").src = songs[(current + 1) % songs.length].cover
+  document.getElementById("bg").style.backgroundImage = `url(${song.cover})`
   player.currentTime = savedTime
   player.play().catch(()=>{})
-  updateProfile()
 }
 
-window.next = function(){
-  current = (current + 1) % songs.length
-  load()
-}
-
-window.prev = function(){
-  current = (current - 1 + songs.length) % songs.length
-  load()
-}
-
-window.addToQueue = function(i){
-  queue.push(i)
-  alert("Adicionado na fila!")
-}
+window.next = () => { current = (current + 1) % songs.length; load() }
+window.prev = () => { current = (current - 1 + songs.length) % songs.length; load() }
+window.addToQueue = (i) => { queue.push(i); alert("Adicionado na fila!") }
 
 player.onended = () => {
-  if(queue.length > 0){
-    current = queue.shift()
-    load()
-  } else {
-    next()
-  }
+  if(queue.length > 0){ current = queue.shift(); load() }
+  else next()
 }
 
 setInterval(()=>{
@@ -384,20 +504,16 @@ setInterval(()=>{
   if(!player.paused){
     totalTime++
     localStorage.setItem("totalTime", totalTime)
-    document.getElementById("totalTime").innerText = totalTime
+    const el = document.getElementById("totalTime")
+    if(el) el.innerText = totalTime
   }
 }, 1000)
 
 bar.oninput = () => player.currentTime = bar.value
 
 playBtn.onclick = () => {
-  if(player.paused){
-    player.play()
-    playBtn.innerText = "⏸"
-  } else {
-    player.pause()
-    playBtn.innerText = "▶"
-  }
+  if(player.paused){ player.play(); playBtn.innerText = "⏸" }
+  else { player.pause(); playBtn.innerText = "▶" }
 }
 
 document.getElementById("search").addEventListener("keydown", (e) => {
@@ -409,70 +525,189 @@ document.getElementById("search").addEventListener("keydown", (e) => {
   }
 })
 
+// CLOUDINARY UPLOAD
+async function uploadToCloudinary(file, type, onProgress){
+  return new Promise((resolve, reject) => {
+    const formData = new FormData()
+    formData.append("file", file)
+    formData.append("upload_preset", CLOUDINARY_PRESET)
+    formData.append("resource_type", type === "audio" ? "video" : "image")
+
+    const xhr = new XMLHttpRequest()
+    const resourceType = type === "audio" ? "video" : "image"
+    xhr.open("POST", `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/${resourceType}/upload`)
+
+    xhr.upload.onprogress = (e) => {
+      if(e.lengthComputable) onProgress(Math.round(e.loaded / e.total * 100))
+    }
+
+    xhr.onload = () => {
+      const res = JSON.parse(xhr.responseText)
+      if(res.secure_url) resolve(res.secure_url)
+      else reject(res)
+    }
+
+    xhr.onerror = reject
+    xhr.send(formData)
+  })
+}
+
+// DRAG AND DROP
+function setupDrop(zoneId, inputId, type, onFile){
+  const zone = document.getElementById(zoneId)
+  const input = document.getElementById(inputId)
+
+  zone.addEventListener("dragover", (e) => { e.preventDefault(); zone.classList.add("over") })
+  zone.addEventListener("dragleave", () => zone.classList.remove("over"))
+  zone.addEventListener("drop", (e) => {
+    e.preventDefault()
+    zone.classList.remove("over")
+    const file = e.dataTransfer.files[0]
+    if(file) onFile(file)
+  })
+  input.addEventListener("change", () => {
+    if(input.files[0]) onFile(input.files[0])
+  })
+}
+
+setupDrop("audioZone", "audioInput", "audio", (file) => {
+  audioFile = file
+  document.getElementById("audioName").innerText = file.name
+})
+
+setupDrop("coverZone", "coverInput", "image", (file) => {
+  coverFile = file
+  document.getElementById("coverName").innerText = file.name
+  const preview = document.getElementById("coverPreview")
+  preview.src = URL.createObjectURL(file)
+  preview.style.display = "block"
+})
+
+setupDrop("picZone", "picInput", "image", (file) => {
+  picFile = file
+  document.getElementById("picFileName").innerText = file.name
+})
+
+setupDrop("bannerZone", "bannerInput", "image", (file) => {
+  bannerFile = file
+  document.getElementById("bannerFileName").innerText = file.name
+})
+
+// ADICIONAR MÚSICA
+window.openAddMusic = () => {
+  audioFile = null; coverFile = null
+  document.getElementById("musicName").value = ""
+  document.getElementById("audioName").innerText = "Nenhum arquivo"
+  document.getElementById("coverName").innerText = "Nenhum arquivo"
+  document.getElementById("coverPreview").style.display = "none"
+  document.getElementById("uploadStatus").innerText = ""
+  document.getElementById("uploadProgress").style.display = "none"
+  openModal("addMusicModal")
+}
+
+window.submitMusic = async () => {
+  const name = document.getElementById("musicName").value.trim()
+  if(!name || !audioFile || !coverFile){
+    alert("Preencha o nome, áudio e capa!")
+    return
+  }
+
+  const progress = document.getElementById("uploadProgress")
+  const fill = document.getElementById("uploadFill")
+  const status = document.getElementById("uploadStatus")
+  progress.style.display = "block"
+
+  try {
+    status.innerText = "Enviando capa..."
+    fill.style.width = "0%"
+    const coverUrl = await uploadToCloudinary(coverFile, "image", p => fill.style.width = (p * 0.4) + "%")
+
+    status.innerText = "Enviando áudio..."
+    const audioUrl = await uploadToCloudinary(audioFile, "audio", p => fill.style.width = (40 + p * 0.6) + "%")
+
+    await push(songsRef, { name, audio: audioUrl, cover: coverUrl })
+
+    status.innerText = "✅ Música adicionada para todos!"
+    fill.style.width = "100%"
+    setTimeout(() => closeModal("addMusicModal"), 1500)
+
+  } catch(err) {
+    status.innerText = "❌ Erro no upload. Tente novamente."
+    console.error(err)
+  }
+}
+
+window.removeMusicPrompt = () => {
+  const name = prompt("Nome da música para remover:")
+  if(!name) return
+  const song = songs.find(s => s.name.toLowerCase() === name.toLowerCase())
+  if(!song){ alert("Não encontrada!"); return }
+  remove(ref(db, "songs/" + song.id))
+  alert("Removida para todos!")
+}
+
+// PERFIL
+window.openProfile = () => {
+  document.getElementById("profileNameInput").value = profile.name
+  document.getElementById("profilePic").src = profile.pic
+  document.getElementById("profileName").innerText = profile.name
+  if(profile.banner) document.getElementById("bannerDiv").style.backgroundImage = `url(${profile.banner})`
+  const list = document.getElementById("topSongs")
+  list.innerHTML = ""
+  songs.slice(0,3).forEach(s => list.innerHTML += `<li>${s.name}</li>`)
+  document.getElementById("totalTime").innerText = totalTime
+  picFile = null; bannerFile = null
+  document.getElementById("picFileName").innerText = "Nenhum arquivo"
+  document.getElementById("bannerFileName").innerText = "Nenhum arquivo"
+  openModal("profileModal")
+}
+
+window.saveProfile = async () => {
+  const name = document.getElementById("profileNameInput").value.trim()
+  if(name) profile.name = name
+
+  const progress = document.getElementById("profileProgress")
+  const fill = document.getElementById("profileFill")
+  const status = document.getElementById("profileStatus")
+
+  try {
+    if(picFile){
+      progress.style.display = "block"
+      status.innerText = "Enviando foto..."
+      profile.pic = await uploadToCloudinary(picFile, "image", p => fill.style.width = p + "%")
+    }
+    if(bannerFile){
+      progress.style.display = "block"
+      status.innerText = "Enviando banner..."
+      profile.banner = await uploadToCloudinary(bannerFile, "image", p => fill.style.width = p + "%")
+    }
+
+    localStorage.setItem("profile", JSON.stringify(profile))
+    document.getElementById("navAvatar").src = profile.pic
+    status.innerText = "✅ Perfil salvo!"
+    setTimeout(() => closeModal("profileModal"), 1000)
+
+  } catch(err) {
+    status.innerText = "❌ Erro ao salvar. Tente novamente."
+    console.error(err)
+  }
+}
+
 // ADMIN
-window.checkAdmin = function(){
-  let key = prompt("Admin key:")
-  if(key === ADMIN_KEY){
-    adminMode = true
+window.checkAdmin = () => {
+  const key = prompt("Admin key:")
+  if(key === "12345"){
     document.getElementById("adminBtn").style.display = "block"
     document.getElementById("removeBtn").style.display = "block"
-    alert("Modo admin ativado")
+    alert("Modo admin ativado!")
   } else {
     alert("Acesso negado")
   }
 }
 
-window.addMusic = function(){
-  let name = prompt("Nome da música:")
-  let audio = prompt("Caminho do áudio (music/arquivo.mp3):")
-  let cover = prompt("Caminho da capa (covers/img.jpg):")
-  if(!name || !audio || !cover) return
-  push(songsRef, { name, audio, cover })
-  alert("Música adicionada para todos!")
-}
-
-window.removeMusicPrompt = function(){
-  let name = prompt("Nome da música para remover:")
-  if(!name) return
-  const song = songs.find(s => s.name.toLowerCase() === name.toLowerCase())
-  if(!song){ alert("Música não encontrada!"); return }
-  remove(ref(db, "songs/" + song.id))
-  alert("Música removida para todos!")
-}
-
-// PERFIL
-window.openProfile = function(){
-  document.getElementById("profileModal").style.display = "block"
-  updateProfile()
-}
-
-window.closeProfile = function(){
-  document.getElementById("profileModal").style.display = "none"
-}
-
-window.editProfile = function(){
-  let n = prompt("Nome:")
-  if(n) profile.name = n
-  let p = prompt("Foto URL:")
-  if(p) profile.pic = p
-  let b = prompt("Banner URL:")
-  if(b) profile.banner = b
-  localStorage.setItem("profile", JSON.stringify(profile))
-  updateProfile()
-}
-
-function updateProfile(){
-  document.getElementById("profileName").innerText = profile.name
-  document.getElementById("profilePic").src = profile.pic
-  document.getElementById("navAvatar").src = profile.pic
-  if(profile.banner){
-    document.getElementById("banner").style.backgroundImage = `url(${profile.banner})`
-  }
-  let list = document.getElementById("topSongs")
-  list.innerHTML = ""
-  songs.slice(0,3).forEach(s => { list.innerHTML += `<li>${s.name}</li>` })
-  document.getElementById("totalTime").innerText = totalTime
-}
+// MODAL HELPERS
+window.openModal = (id) => { document.getElementById(id).style.display = "flex" }
+window.closeModal = (id) => { document.getElementById(id).style.display = "none" }
 
 </script>
 
