@@ -41,18 +41,6 @@ nav{
 .pill-admin{ background:#1a1a4a; color:white; }
 .pill-admin.active{ background:#2d2d8a; }
 
-#saveOrderBtn{
-  display:none;
-  padding:9px 20px; border-radius:99px; border:none;
-  background:#7c5cff; color:white; font-size:13px; font-weight:bold;
-  cursor:pointer; transition:.2s; animation: pulse 1.5s infinite;
-}
-#saveOrderBtn:hover{ transform:scale(1.05); background:#9b7fff; }
-@keyframes pulse{
-  0%,100%{ box-shadow:0 0 0 0 rgba(124,92,255,.4); }
-  50%{ box-shadow:0 0 0 8px rgba(124,92,255,0); }
-}
-
 .page{ padding:32px 28px; }
 .page-header{ margin-bottom:28px; }
 .page-header h2{ font-size:22px; font-weight:bold; }
@@ -118,62 +106,47 @@ nav{
 
 .fotocard{
   width:150px; border-radius:14px; overflow:hidden;
-  position:relative;
+  position:relative; cursor:pointer;
   border:1px solid rgba(255,255,255,.06);
-  transition:transform .25s, box-shadow .25s, border-color .25s, opacity .2s;
+  transition:transform .25s, box-shadow .25s, border-color .25s;
   background:#111120;
   user-select:none;
-  cursor:grab;
 }
-/* desativa todos os eventos de pointer em filhos durante drag */
-.cards-grid.is-dragging .fotocard *{
-  pointer-events: none;
-}
-.fotocard:not(.dragging):hover{
+.fotocard:hover{
   transform:translateY(-5px) scale(1.03);
   border-color:rgba(255,255,255,.2);
   box-shadow:0 14px 40px rgba(0,0,0,.5);
 }
-/* imagens NUNCA são arrastáveis pelo browser */
-.fotocard img{
-  width:150px; height:225px; object-fit:cover; display:block;
-  pointer-events:none;
-  -webkit-user-drag: none;
-  user-drag: none;
-  draggable: false;
-}
+.fotocard img{ width:150px; height:225px; object-fit:cover; display:block; pointer-events:none; draggable:false; }
 .fotocard-label{
   padding:8px 10px; font-size:11px; opacity:.5;
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-  pointer-events:none;
 }
-.fotocard-del{
+.fotocard-actions{
   position:absolute; top:6px; right:6px;
-  width:24px; height:24px; border-radius:50%;
-  background:rgba(0,0,0,.75); border:1px solid rgba(255,255,255,.15);
-  color:white; font-size:13px;
+  display:flex; flex-direction:column; gap:4px;
+  opacity:0; transition:.2s;
+}
+.fotocard:hover .fotocard-actions{ opacity:1; }
+.fc-btn{
+  width:26px; height:26px; border-radius:50%;
+  background:rgba(0,0,0,.8); border:1px solid rgba(255,255,255,.15);
+  color:white; font-size:12px;
   display:flex; align-items:center; justify-content:center;
-  cursor:pointer; opacity:0; transition:.2s;
+  cursor:pointer; transition:.2s;
 }
-.fotocard:hover .fotocard-del{ opacity:1; }
-.fotocard-del:hover{ background:rgba(200,0,0,.6); }
+.fc-btn:hover{ transform:scale(1.1); }
+.fc-btn.del:hover{ background:rgba(200,0,0,.7); }
+.fc-btn.up:hover{ background:rgba(92,124,255,.7); }
+.fc-btn.dn:hover{ background:rgba(92,124,255,.7); }
 
-.fotocard.dragging{
-  opacity:.3;
-  transform:scale(.95);
-  cursor:grabbing;
-  border-color: rgba(124,92,255,.5);
+.fotocard-pos{
+  position:absolute; top:6px; left:6px;
+  background:rgba(0,0,0,.7); border:1px solid rgba(255,255,255,.15);
+  border-radius:6px; font-size:10px; padding:2px 6px;
+  opacity:0; transition:.2s; pointer-events:none;
 }
-.fotocard.drag-over{
-  border-color:#7c5cff;
-  box-shadow:0 0 0 2px #7c5cff;
-  transform: scale(1.03);
-}
-
-.drag-hint{
-  font-size:12px; opacity:.3; letter-spacing:1px;
-  margin-bottom:14px; display:none;
-}
+.fotocard:hover .fotocard-pos{ opacity:1; }
 
 .cards-count{ font-size:13px; opacity:.3; letter-spacing:1px; margin-left:4px; }
 
@@ -252,6 +225,16 @@ nav{
 .prog-fill{ height:100%; background:#7c5cff; width:0%; transition:.3s; }
 .status{ font-size:12px; opacity:.4; margin-top:6px; min-height:16px; }
 
+.field-label{ font-size:12px; opacity:.4; margin-bottom:6px; margin-top:4px; }
+
+.sync-btn{
+  padding:9px 18px; border-radius:99px; border:none;
+  cursor:pointer; font-size:13px; font-weight:bold; transition:.2s;
+  background:#0f3d1a; color:#4ade80;
+}
+.sync-btn:hover{ transform:scale(1.04); background:#1a5c28; }
+.sync-btn.syncing{ opacity:.6; cursor:not-allowed; }
+
 #ls{
   position:fixed; inset:0; background:#08080f; z-index:99999;
   display:flex; justify-content:center; align-items:center;
@@ -270,7 +253,6 @@ nav{
     <span class="nav-title" id="navTitle">Fotocards</span>
   </div>
   <div class="nav-right">
-    <button id="saveOrderBtn" onclick="saveOrder()">💾 Salvar ordem</button>
     <button class="pill pill-fav">♥ Favoritos</button>
     <button class="pill pill-admin" id="adminPill" onclick="toggleAdmin()">Admin</button>
   </div>
@@ -278,7 +260,6 @@ nav{
 
 <div class="page">
   <div class="page-header" id="pageHeader"><h2>Álbuns &amp; Eras</h2></div>
-  <div class="drag-hint" id="dragHint">↔ Arraste para reordenar · clique em 💾 para salvar</div>
   <div id="mainContent"></div>
 </div>
 
@@ -324,6 +305,8 @@ nav{
       <img class="drop-preview" id="cPreview">
     </div>
     <input type="file" id="cFile" accept="image/*" style="display:none">
+    <p class="field-label">Posição na grade (1 = primeiro)</p>
+    <input class="field" id="cPos" type="number" min="1" placeholder="Deixe vazio para adicionar no final">
     <div class="prog-bar" id="cBar"><div class="prog-fill" id="cFill"></div></div>
     <p class="status" id="cStatus"></p>
     <div class="btn-row">
@@ -353,6 +336,13 @@ const db  = getDatabase(app)
 const albumsRef = ref(db, "albums")
 const cardsRef  = ref(db, "fotocards")
 
+// ── GITHUB CONFIG ──────────────────────────────
+const GH_USER   = "victorlongdon-commits"
+const GH_REPO   = "music"
+const GH_BRANCH = "main"
+const GH_EXTS   = [".jpg",".jpeg",".png",".webp",".gif"]
+// ──────────────────────────────────────────────
+
 const CC = "dlcg5zzes"
 const CP = "bts_upload"
 
@@ -362,8 +352,6 @@ let curAlbum  = null
 let isAdmin   = localStorage.getItem("isAdmin") === "true"
 let aFile = null, cFile = null
 let lbList = [], lbIdx = 0
-let dragSrc = null
-let orderChanged = false
 
 function refreshAdminPill(){
   const p = document.getElementById("adminPill")
@@ -375,7 +363,7 @@ refreshAdminPill()
 onValue(albumsRef, snap => {
   albums = []
   snap.forEach(c => albums.push({ id:c.key, ...c.val() }))
-  if(!orderChanged) render()
+  render()
 })
 
 onValue(cardsRef, snap => {
@@ -383,7 +371,7 @@ onValue(cardsRef, snap => {
   snap.forEach(c => fotocards.push({ id:c.key, ...c.val() }))
   document.getElementById("ls").style.opacity = "0"
   setTimeout(() => document.getElementById("ls").style.display = "none", 1000)
-  if(!orderChanged) render()
+  render()
 })
 
 function render(){
@@ -391,12 +379,20 @@ function render(){
   else         renderAlbums()
 }
 
-/* ---- ÁLBUNS ---- */
+/* ── ÁLBUNS ── */
 function renderAlbums(){
   document.getElementById("navTitle").innerText = "Fotocards"
-  document.getElementById("pageHeader").innerHTML = "<h2>Álbuns &amp; Eras</h2>"
-  document.getElementById("dragHint").style.display = "none"
-  document.getElementById("saveOrderBtn").style.display = "none"
+
+  // botão sync só aparece pra admin
+  const syncBtn = isAdmin
+    ? `<button class="sync-btn" id="syncBtn" onclick="runSync()">⟳ Sync GitHub</button>`
+    : ""
+
+  document.getElementById("pageHeader").innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+      <h2>Álbuns &amp; Eras</h2>
+      ${syncBtn}
+    </div>`
 
   let html = '<div class="albums-grid">'
   albums.forEach(a => {
@@ -423,9 +419,9 @@ function renderAlbums(){
   document.getElementById("mainContent").innerHTML = html
 }
 
-window.openAlbum = id => { curAlbum = id; orderChanged = false; renderCards() }
+window.openAlbum = id => { curAlbum = id; renderCards() }
 
-/* ---- FOTOCARDS ---- */
+/* ── FOTOCARDS ── */
 function renderCards(){
   const album = albums.find(a => a.id === curAlbum)
   if(!album){ curAlbum = null; renderAlbums(); return }
@@ -443,12 +439,6 @@ function renderCards(){
       <span class="cards-count">${cards.length} fotocards</span>
     </div>`
 
-  if(isAdmin && cards.length > 1){
-    document.getElementById("dragHint").style.display = "block"
-  } else {
-    document.getElementById("dragHint").style.display = "none"
-  }
-
   const grid = document.createElement("div")
   grid.className = "cards-grid"
   grid.id = "cardsGrid"
@@ -458,26 +448,20 @@ function renderCards(){
     card.className = "fotocard"
     card.dataset.id = c.id
 
-    if(isAdmin){
-      card.draggable = true
-      card.addEventListener("dragstart", onDragStart)
-      card.addEventListener("dragend",   onDragEnd)
-      card.addEventListener("dragover",  onDragOver)
-      card.addEventListener("dragleave", onDragLeave)
-      card.addEventListener("drop",      onDrop)
-    }
+    const adminBtns = isAdmin ? `
+      <div class="fotocard-pos">#${i+1}</div>
+      <div class="fotocard-actions">
+        <div class="fc-btn up" title="Mover para cima" onclick="moveCard(event,'${c.id}',-1)">↑</div>
+        <div class="fc-btn dn" title="Mover para baixo" onclick="moveCard(event,'${c.id}',1)">↓</div>
+        <div class="fc-btn del" title="Remover" onclick="delCard(event,'${c.id}')">✕</div>
+      </div>` : ""
 
-    // imagem com draggable=false para evitar que o browser arraste a img separado
     card.innerHTML = `
       <img src="${c.img}" draggable="false" onerror="this.src='https://via.placeholder.com/150x225'">
-      ${isAdmin ? `<div class="fotocard-del" onclick="delCard(event,'${c.id}')">✕</div>` : ""}
+      ${adminBtns}
       ${c.name ? `<div class="fotocard-label">${c.name}</div>` : ""}
     `
-
-    card.addEventListener("click", () => {
-      if(!orderChanged) openLb(i)
-    })
-
+    card.addEventListener("click", () => openLb(i))
     grid.appendChild(card)
   })
 
@@ -493,124 +477,143 @@ function renderCards(){
   document.getElementById("mainContent").appendChild(grid)
 }
 
-/* ---- DRAG AND DROP ---- */
-function onDragStart(e){
-  dragSrc = this
-  // Pequeno delay para o browser capturar o ghost antes de esconder
-  setTimeout(() => this.classList.add("dragging"), 0)
-
-  // Adiciona classe no grid para desativar pointer-events nos filhos
-  const grid = document.getElementById("cardsGrid")
-  if(grid) grid.classList.add("is-dragging")
-
-  e.dataTransfer.effectAllowed = "move"
-  e.dataTransfer.setData("text/plain", this.dataset.id)
+/* ── GITHUB SYNC ─────────────────────────────── */
+async function ghAPI(path) {
+  const url = `https://api.github.com/repos/${GH_USER}/${GH_REPO}/contents/${path}?ref=${GH_BRANCH}`
+  const r = await fetch(url)
+  if (!r.ok) return []
+  return r.json()
 }
 
-function onDragEnd(){
-  if(dragSrc) dragSrc.classList.remove("dragging")
-  dragSrc = null
-
-  const grid = document.getElementById("cardsGrid")
-  if(grid) grid.classList.remove("is-dragging")
-
-  document.querySelectorAll(".fotocard").forEach(c => c.classList.remove("drag-over"))
-}
-
-function onDragOver(e){
-  e.preventDefault()
-  e.dataTransfer.dropEffect = "move"
-  if(dragSrc && this !== dragSrc){
-    document.querySelectorAll(".fotocard").forEach(c => c.classList.remove("drag-over"))
-    this.classList.add("drag-over")
-  }
-}
-
-function onDragLeave(e){
-  // só remove se realmente saiu do card (não entrou num filho)
-  if(!this.contains(e.relatedTarget)){
-    this.classList.remove("drag-over")
-  }
-}
-
-function onDrop(e){
-  e.preventDefault()
-  e.stopPropagation()
-  this.classList.remove("drag-over")
-  if(!dragSrc || this === dragSrc) return
-
-  const grid = document.getElementById("cardsGrid")
-  const allCards = [...grid.querySelectorAll(".fotocard")]
-  const srcIdx  = allCards.indexOf(dragSrc)
-  const destIdx = allCards.indexOf(this)
-
-  if(srcIdx < destIdx){
-    grid.insertBefore(dragSrc, this.nextSibling)
-  } else {
-    grid.insertBefore(dragSrc, this)
-  }
-
-  orderChanged = true
-  document.getElementById("saveOrderBtn").style.display = "block"
-}
-
-/* ---- SALVAR ORDEM ---- */
-window.saveOrder = async function(){
-  const grid = document.getElementById("cardsGrid")
-  if(!grid) return
-  const cards = [...grid.querySelectorAll(".fotocard[data-id]")]
-  const btn = document.getElementById("saveOrderBtn")
-  btn.innerText = "Salvando..."
-  btn.style.background = "#444"
-  btn.style.animation = "none"
+async function syncGithub() {
+  const btn = document.getElementById("syncBtn")
+  if (btn) { btn.innerText = "⟳ Sincronizando..."; btn.classList.add("syncing") }
 
   try {
-    const updates = {}
-    cards.forEach((el, i) => {
-      updates[`fotocards/${el.dataset.id}/order`] = i
-    })
-    await update(ref(db), updates)
+    const pastas = await ghAPI("fotocards")
+    if (!Array.isArray(pastas) || pastas.length === 0) {
+      alert("Nenhuma pasta encontrada em /fotocards no GitHub.\nVerifique se a pasta existe e o repositório é público.")
+      return
+    }
 
-    // Atualiza array local
-    cards.forEach((el, i) => {
-      const fc = fotocards.find(f => f.id === el.dataset.id)
-      if(fc) fc.order = i
-    })
+    let totalAdicionados = 0
 
-    btn.innerText = "✅ Salvo!"
-    btn.style.background = "#1a6a1a"
-    orderChanged = false
+    for (const pasta of pastas) {
+      if (pasta.type !== "dir") continue
 
-    setTimeout(() => {
-      btn.style.display = "none"
-      btn.innerText = "💾 Salvar ordem"
-      btn.style.background = "#7c5cff"
-      btn.style.animation = "pulse 1.5s infinite"
-    }, 1800)
-  } catch(err){
-    btn.innerText = "❌ Erro"
-    btn.style.background = "#6a1a1a"
-    console.error(err)
-    setTimeout(() => {
-      btn.innerText = "💾 Salvar ordem"
-      btn.style.background = "#7c5cff"
-      btn.style.animation = "pulse 1.5s infinite"
-    }, 2000)
+      const nomeAlbum = pasta.name
+
+      // Acha ou cria álbum
+      let album = albums.find(a => a.name === nomeAlbum)
+      if (!album) {
+        const newRef = await push(albumsRef, {
+          name: nomeAlbum,
+          artist: "BTS",
+          year: "",
+          cover: ""
+        })
+        album = { id: newRef.key, name: nomeAlbum, artist: "BTS", year: "", cover: "" }
+        albums.push(album)
+      }
+
+      // Lista imagens da pasta
+      const arquivos = await ghAPI(`fotocards/${pasta.name}`)
+      if (!Array.isArray(arquivos)) continue
+
+      const imagens = arquivos
+        .filter(f => {
+          const ext = f.name.slice(f.name.lastIndexOf(".")).toLowerCase()
+          return f.type === "file" && GH_EXTS.includes(ext)
+        })
+        .sort((a, b) => a.name.localeCompare(b.name))
+
+      // Cards existentes nesse álbum
+      const cardsAlbum = fotocards.filter(c => c.albumId === album.id)
+      const existentes = new Set(cardsAlbum.map(c => c.sourceFile).filter(Boolean))
+      let nextOrder = cardsAlbum.length > 0
+        ? Math.max(...cardsAlbum.map(c => c.order ?? 0)) + 1
+        : 0
+
+      for (const img of imagens) {
+        if (existentes.has(img.name)) continue
+
+        const imgUrl = `https://raw.githubusercontent.com/${GH_USER}/${GH_REPO}/${GH_BRANCH}/fotocards/${encodeURIComponent(pasta.name)}/${encodeURIComponent(img.name)}`
+        const nome = img.name.slice(0, img.name.lastIndexOf("."))
+
+        const novoRef = await push(cardsRef, {
+          albumId:    album.id,
+          name:       nome,
+          img:        imgUrl,
+          order:      nextOrder,
+          sourceFile: img.name
+        })
+
+        fotocards.push({
+          id: novoRef.key,
+          albumId: album.id,
+          name: nome,
+          img: imgUrl,
+          order: nextOrder,
+          sourceFile: img.name
+        })
+
+        nextOrder++
+        totalAdicionados++
+      }
+    }
+
+    render()
+    alert(totalAdicionados > 0
+      ? `✅ ${totalAdicionados} fotocard(s) adicionado(s) do GitHub!`
+      : "✅ Tudo já estava atualizado, nenhum card novo encontrado.")
+
+  } catch(e) {
+    console.error(e)
+    alert("❌ Erro ao sincronizar com GitHub. Veja o console.")
+  } finally {
+    if (btn) { btn.innerText = "⟳ Sync GitHub"; btn.classList.remove("syncing") }
   }
 }
 
-/* ---- NAV ---- */
+window.runSync = syncGithub
+/* ── FIM GITHUB SYNC ─────────────────────────── */
+
+/* ── MOVER CARD ── */
+window.moveCard = async function(e, id, dir){
+  e.stopPropagation()
+  const cards = fotocards
+    .filter(c => c.albumId === curAlbum)
+    .sort((a,b) => (a.order ?? 9999) - (b.order ?? 9999))
+
+  const idx = cards.findIndex(c => c.id === id)
+  const swapIdx = idx + dir
+  if(swapIdx < 0 || swapIdx >= cards.length) return
+
+  const updates = {}
+  updates[`fotocards/${cards[idx].id}/order`]     = swapIdx
+  updates[`fotocards/${cards[swapIdx].id}/order`] = idx
+
+  cards[idx].order     = swapIdx
+  cards[swapIdx].order = idx
+  fotocards.forEach(f => {
+    const found = cards.find(c => c.id === f.id)
+    if(found) f.order = found.order
+  })
+
+  await update(ref(db), updates)
+}
+
+/* ── NAV ── */
 window.goBack = function(){
-  if(curAlbum){ curAlbum = null; orderChanged = false; renderAlbums() }
+  if(curAlbum){ curAlbum = null; renderAlbums() }
   else { window.location.href = "home.html" }
 }
 window.goBackToAlbums = function(){
-  curAlbum = null; orderChanged = false
-  document.getElementById("saveOrderBtn").style.display = "none"
+  curAlbum = null
   renderAlbums()
 }
 
-/* ---- ADMIN ---- */
+/* ── ADMIN ── */
 window.toggleAdmin = function(){
   if(isAdmin){
     isAdmin = false
@@ -630,7 +633,7 @@ window.toggleAdmin = function(){
   }
 }
 
-/* ---- CLOUDINARY ---- */
+/* ── CLOUDINARY ── */
 async function upload(file, onProg){
   return new Promise((res, rej) => {
     const fd = new FormData()
@@ -648,7 +651,7 @@ async function upload(file, onProg){
   })
 }
 
-/* ---- DROP ZONES (modais) ---- */
+/* ── DROP ZONES ── */
 function setupDrop(dropId, fileId, previewId, nameId, onFile){
   const drop = document.getElementById(dropId)
   const inp  = document.getElementById(fileId)
@@ -672,7 +675,7 @@ setupDrop("cDrop","cFile","cPreview","cFileName", f => {
   const p = document.getElementById("cPreview"); p.src = URL.createObjectURL(f); p.style.display = "block"
 })
 
-/* ---- ÁLBUM MODAL ---- */
+/* ── ÁLBUM MODAL ── */
 window.openAddAlbum = function(){
   aFile = null
   ;["aName","aArtist","aYear"].forEach(id => document.getElementById(id).value = "")
@@ -701,10 +704,11 @@ window.delAlbum = function(e, id){
   fotocards.filter(c => c.albumId === id).forEach(c => remove(ref(db,"fotocards/"+c.id)))
 }
 
-/* ---- CARD MODAL ---- */
+/* ── CARD MODAL ── */
 window.openAddCard = function(){
   cFile = null
   document.getElementById("cName").value = ""
+  document.getElementById("cPos").value = ""
   document.getElementById("cFileName").innerText = "Nenhum arquivo selecionado"
   document.getElementById("cPreview").style.display = "none"
   document.getElementById("cStatus").innerText = ""
@@ -712,28 +716,65 @@ window.openAddCard = function(){
   const sel = document.getElementById("cAlbum")
   sel.innerHTML = albums.map(a => `<option value="${a.id}">${a.name}</option>`).join("")
   if(curAlbum) sel.value = curAlbum
+
+  const count = fotocards.filter(c => c.albumId === curAlbum).length
+  document.getElementById("cPos").placeholder = `1 a ${count+1} — vazio = final (posição ${count+1})`
+
   openModal("mCard")
 }
+
 window.submitCard = async function(){
   const albumId = document.getElementById("cAlbum").value
   if(!albumId || !cFile){ alert("Selecione o álbum e a imagem!"); return }
+
   const bar = document.getElementById("cBar"), fill = document.getElementById("cFill"), status = document.getElementById("cStatus")
+
+  let albumCards = fotocards
+    .filter(c => c.albumId === albumId)
+    .sort((a,b) => (a.order ?? 9999) - (b.order ?? 9999))
+
+  const posInput = parseInt(document.getElementById("cPos").value)
+  let insertAt = albumCards.length
+
+  if(!isNaN(posInput)){
+    insertAt = Math.max(0, Math.min(posInput - 1, albumCards.length))
+  }
+
   try {
     bar.style.display = "block"; status.innerText = "Enviando imagem..."
     const img = await upload(cFile, p => fill.style.width = p+"%")
-    const currentCards = fotocards.filter(c => c.albumId === albumId)
-    await push(cardsRef, { albumId, name: document.getElementById("cName").value.trim(), img, order: currentCards.length })
-    status.innerText = "✅ Fotocard adicionado!"; fill.style.width = "100%"
+
+    const updates = {}
+    albumCards.forEach((c, i) => {
+      if(i >= insertAt){
+        updates[`fotocards/${c.id}/order`] = i + 1
+      }
+    })
+
+    const newRef = await push(cardsRef, {
+      albumId,
+      name: document.getElementById("cName").value.trim(),
+      img,
+      order: insertAt
+    })
+
+    if(Object.keys(updates).length > 0){
+      await update(ref(db), updates)
+    }
+
+    status.innerText = `✅ Fotocard adicionado na posição ${insertAt+1}!`
+    fill.style.width = "100%"
     setTimeout(() => closeModal("mCard"), 1200)
   } catch(e){ status.innerText = "❌ Erro. Tente novamente."; console.error(e) }
 }
+
 window.delCard = function(e, id){
   e.stopPropagation()
   if(!confirm("Remover este fotocard?")) return
   remove(ref(db,"fotocards/"+id))
 }
 
-/* ---- LIGHTBOX ---- */
+/* ── LIGHTBOX ── */
 window.openLb = function(i){
   lbIdx = i; updateLb()
   document.getElementById("lightbox").classList.add("open")
@@ -754,7 +795,7 @@ document.addEventListener("keydown", e => {
   if(e.key==="Escape") closeLb()
 })
 
-/* ---- MODAL HELPERS ---- */
+/* ── MODAL HELPERS ── */
 window.openModal  = id => document.getElementById(id).classList.add("open")
 window.closeModal = id => document.getElementById(id).classList.remove("open")
 window.modalBg    = (e, id) => { if(e.target === document.getElementById(id)) closeModal(id) }
