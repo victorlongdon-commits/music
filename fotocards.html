@@ -140,7 +140,6 @@ nav{
 .fc-btn.up:hover{ background:rgba(92,124,255,.7); }
 .fc-btn.dn:hover{ background:rgba(92,124,255,.7); }
 
-/* badge de posição */
 .fotocard-pos{
   position:absolute; top:6px; left:6px;
   background:rgba(0,0,0,.7); border:1px solid rgba(255,255,255,.15);
@@ -151,7 +150,6 @@ nav{
 
 .cards-count{ font-size:13px; opacity:.3; letter-spacing:1px; margin-left:4px; }
 
-/* LIGHTBOX */
 .lightbox{
   position:fixed; inset:0; background:rgba(0,0,0,.94);
   z-index:9999; display:none;
@@ -177,7 +175,6 @@ nav{
   font-size:12px; opacity:.35; letter-spacing:2px; white-space:nowrap;
 }
 
-/* MODAL */
 .modal{
   position:fixed; inset:0; background:rgba(0,0,0,.85);
   display:none; z-index:99999;
@@ -229,6 +226,14 @@ nav{
 .status{ font-size:12px; opacity:.4; margin-top:6px; min-height:16px; }
 
 .field-label{ font-size:12px; opacity:.4; margin-bottom:6px; margin-top:4px; }
+
+.sync-btn{
+  padding:9px 18px; border-radius:99px; border:none;
+  cursor:pointer; font-size:13px; font-weight:bold; transition:.2s;
+  background:#0f3d1a; color:#4ade80;
+}
+.sync-btn:hover{ transform:scale(1.04); background:#1a5c28; }
+.sync-btn.syncing{ opacity:.6; cursor:not-allowed; }
 
 #ls{
   position:fixed; inset:0; background:#08080f; z-index:99999;
@@ -300,10 +305,8 @@ nav{
       <img class="drop-preview" id="cPreview">
     </div>
     <input type="file" id="cFile" accept="image/*" style="display:none">
-
     <p class="field-label">Posição na grade (1 = primeiro)</p>
     <input class="field" id="cPos" type="number" min="1" placeholder="Deixe vazio para adicionar no final">
-
     <div class="prog-bar" id="cBar"><div class="prog-fill" id="cFill"></div></div>
     <p class="status" id="cStatus"></p>
     <div class="btn-row">
@@ -332,6 +335,13 @@ const app = initializeApp(firebaseConfig)
 const db  = getDatabase(app)
 const albumsRef = ref(db, "albums")
 const cardsRef  = ref(db, "fotocards")
+
+// ── GITHUB CONFIG ──────────────────────────────
+const GH_USER   = "victorlongdon-commits"
+const GH_REPO   = "music"
+const GH_BRANCH = "main"
+const GH_EXTS   = [".jpg",".jpeg",".png",".webp",".gif"]
+// ──────────────────────────────────────────────
 
 const CC = "dlcg5zzes"
 const CP = "bts_upload"
@@ -369,10 +379,20 @@ function render(){
   else         renderAlbums()
 }
 
-/* ---- ÁLBUNS ---- */
+/* ── ÁLBUNS ── */
 function renderAlbums(){
   document.getElementById("navTitle").innerText = "Fotocards"
-  document.getElementById("pageHeader").innerHTML = "<h2>Álbuns &amp; Eras</h2>"
+
+  // botão sync só aparece pra admin
+  const syncBtn = isAdmin
+    ? `<button class="sync-btn" id="syncBtn" onclick="runSync()">⟳ Sync GitHub</button>`
+    : ""
+
+  document.getElementById("pageHeader").innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+      <h2>Álbuns &amp; Eras</h2>
+      ${syncBtn}
+    </div>`
 
   let html = '<div class="albums-grid">'
   albums.forEach(a => {
@@ -401,7 +421,7 @@ function renderAlbums(){
 
 window.openAlbum = id => { curAlbum = id; renderCards() }
 
-/* ---- FOTOCARDS ---- */
+/* ── FOTOCARDS ── */
 function renderCards(){
   const album = albums.find(a => a.id === curAlbum)
   if(!album){ curAlbum = null; renderAlbums(); return }
@@ -441,7 +461,6 @@ function renderCards(){
       ${adminBtns}
       ${c.name ? `<div class="fotocard-label">${c.name}</div>` : ""}
     `
-
     card.addEventListener("click", () => openLb(i))
     grid.appendChild(card)
   })
@@ -458,7 +477,108 @@ function renderCards(){
   document.getElementById("mainContent").appendChild(grid)
 }
 
-/* ---- MOVER CARD (↑ / ↓) ---- */
+/* ── GITHUB SYNC ─────────────────────────────── */
+async function ghAPI(path) {
+  const url = `https://api.github.com/repos/${GH_USER}/${GH_REPO}/contents/${path}?ref=${GH_BRANCH}`
+  const r = await fetch(url)
+  if (!r.ok) return []
+  return r.json()
+}
+
+async function syncGithub() {
+  const btn = document.getElementById("syncBtn")
+  if (btn) { btn.innerText = "⟳ Sincronizando..."; btn.classList.add("syncing") }
+
+  try {
+    const pastas = await ghAPI("fotocards")
+    if (!Array.isArray(pastas) || pastas.length === 0) {
+      alert("Nenhuma pasta encontrada em /fotocards no GitHub.\nVerifique se a pasta existe e o repositório é público.")
+      return
+    }
+
+    let totalAdicionados = 0
+
+    for (const pasta of pastas) {
+      if (pasta.type !== "dir") continue
+
+      const nomeAlbum = pasta.name
+
+      // Acha ou cria álbum
+      let album = albums.find(a => a.name === nomeAlbum)
+      if (!album) {
+        const newRef = await push(albumsRef, {
+          name: nomeAlbum,
+          artist: "BTS",
+          year: "",
+          cover: ""
+        })
+        album = { id: newRef.key, name: nomeAlbum, artist: "BTS", year: "", cover: "" }
+        albums.push(album)
+      }
+
+      // Lista imagens da pasta
+      const arquivos = await ghAPI(`fotocards/${pasta.name}`)
+      if (!Array.isArray(arquivos)) continue
+
+      const imagens = arquivos
+        .filter(f => {
+          const ext = f.name.slice(f.name.lastIndexOf(".")).toLowerCase()
+          return f.type === "file" && GH_EXTS.includes(ext)
+        })
+        .sort((a, b) => a.name.localeCompare(b.name))
+
+      // Cards existentes nesse álbum
+      const cardsAlbum = fotocards.filter(c => c.albumId === album.id)
+      const existentes = new Set(cardsAlbum.map(c => c.sourceFile).filter(Boolean))
+      let nextOrder = cardsAlbum.length > 0
+        ? Math.max(...cardsAlbum.map(c => c.order ?? 0)) + 1
+        : 0
+
+      for (const img of imagens) {
+        if (existentes.has(img.name)) continue
+
+        const imgUrl = `https://raw.githubusercontent.com/${GH_USER}/${GH_REPO}/${GH_BRANCH}/fotocards/${encodeURIComponent(pasta.name)}/${encodeURIComponent(img.name)}`
+        const nome = img.name.slice(0, img.name.lastIndexOf("."))
+
+        const novoRef = await push(cardsRef, {
+          albumId:    album.id,
+          name:       nome,
+          img:        imgUrl,
+          order:      nextOrder,
+          sourceFile: img.name
+        })
+
+        fotocards.push({
+          id: novoRef.key,
+          albumId: album.id,
+          name: nome,
+          img: imgUrl,
+          order: nextOrder,
+          sourceFile: img.name
+        })
+
+        nextOrder++
+        totalAdicionados++
+      }
+    }
+
+    render()
+    alert(totalAdicionados > 0
+      ? `✅ ${totalAdicionados} fotocard(s) adicionado(s) do GitHub!`
+      : "✅ Tudo já estava atualizado, nenhum card novo encontrado.")
+
+  } catch(e) {
+    console.error(e)
+    alert("❌ Erro ao sincronizar com GitHub. Veja o console.")
+  } finally {
+    if (btn) { btn.innerText = "⟳ Sync GitHub"; btn.classList.remove("syncing") }
+  }
+}
+
+window.runSync = syncGithub
+/* ── FIM GITHUB SYNC ─────────────────────────── */
+
+/* ── MOVER CARD ── */
 window.moveCard = async function(e, id, dir){
   e.stopPropagation()
   const cards = fotocards
@@ -469,12 +589,10 @@ window.moveCard = async function(e, id, dir){
   const swapIdx = idx + dir
   if(swapIdx < 0 || swapIdx >= cards.length) return
 
-  // Troca os valores de order entre os dois cards
   const updates = {}
   updates[`fotocards/${cards[idx].id}/order`]     = swapIdx
   updates[`fotocards/${cards[swapIdx].id}/order`] = idx
 
-  // Atualiza local imediatamente (otimista)
   cards[idx].order     = swapIdx
   cards[swapIdx].order = idx
   fotocards.forEach(f => {
@@ -485,7 +603,7 @@ window.moveCard = async function(e, id, dir){
   await update(ref(db), updates)
 }
 
-/* ---- NAV ---- */
+/* ── NAV ── */
 window.goBack = function(){
   if(curAlbum){ curAlbum = null; renderAlbums() }
   else { window.location.href = "home.html" }
@@ -495,7 +613,7 @@ window.goBackToAlbums = function(){
   renderAlbums()
 }
 
-/* ---- ADMIN ---- */
+/* ── ADMIN ── */
 window.toggleAdmin = function(){
   if(isAdmin){
     isAdmin = false
@@ -515,7 +633,7 @@ window.toggleAdmin = function(){
   }
 }
 
-/* ---- CLOUDINARY ---- */
+/* ── CLOUDINARY ── */
 async function upload(file, onProg){
   return new Promise((res, rej) => {
     const fd = new FormData()
@@ -533,7 +651,7 @@ async function upload(file, onProg){
   })
 }
 
-/* ---- DROP ZONES ---- */
+/* ── DROP ZONES ── */
 function setupDrop(dropId, fileId, previewId, nameId, onFile){
   const drop = document.getElementById(dropId)
   const inp  = document.getElementById(fileId)
@@ -557,7 +675,7 @@ setupDrop("cDrop","cFile","cPreview","cFileName", f => {
   const p = document.getElementById("cPreview"); p.src = URL.createObjectURL(f); p.style.display = "block"
 })
 
-/* ---- ÁLBUM MODAL ---- */
+/* ── ÁLBUM MODAL ── */
 window.openAddAlbum = function(){
   aFile = null
   ;["aName","aArtist","aYear"].forEach(id => document.getElementById(id).value = "")
@@ -586,7 +704,7 @@ window.delAlbum = function(e, id){
   fotocards.filter(c => c.albumId === id).forEach(c => remove(ref(db,"fotocards/"+c.id)))
 }
 
-/* ---- CARD MODAL ---- */
+/* ── CARD MODAL ── */
 window.openAddCard = function(){
   cFile = null
   document.getElementById("cName").value = ""
@@ -599,7 +717,6 @@ window.openAddCard = function(){
   sel.innerHTML = albums.map(a => `<option value="${a.id}">${a.name}</option>`).join("")
   if(curAlbum) sel.value = curAlbum
 
-  // mostra quantos cards existem para ajudar a escolher a posição
   const count = fotocards.filter(c => c.albumId === curAlbum).length
   document.getElementById("cPos").placeholder = `1 a ${count+1} — vazio = final (posição ${count+1})`
 
@@ -612,14 +729,12 @@ window.submitCard = async function(){
 
   const bar = document.getElementById("cBar"), fill = document.getElementById("cFill"), status = document.getElementById("cStatus")
 
-  // Pega os cards atuais do álbum ordenados
   let albumCards = fotocards
     .filter(c => c.albumId === albumId)
     .sort((a,b) => (a.order ?? 9999) - (b.order ?? 9999))
 
-  // Posição desejada (1-based → 0-based)
   const posInput = parseInt(document.getElementById("cPos").value)
-  let insertAt = albumCards.length // padrão: final
+  let insertAt = albumCards.length
 
   if(!isNaN(posInput)){
     insertAt = Math.max(0, Math.min(posInput - 1, albumCards.length))
@@ -629,7 +744,6 @@ window.submitCard = async function(){
     bar.style.display = "block"; status.innerText = "Enviando imagem..."
     const img = await upload(cFile, p => fill.style.width = p+"%")
 
-    // 1) Empurra todos os cards a partir de insertAt para frente
     const updates = {}
     albumCards.forEach((c, i) => {
       if(i >= insertAt){
@@ -637,7 +751,6 @@ window.submitCard = async function(){
       }
     })
 
-    // 2) Adiciona o novo card na posição certa
     const newRef = await push(cardsRef, {
       albumId,
       name: document.getElementById("cName").value.trim(),
@@ -645,7 +758,6 @@ window.submitCard = async function(){
       order: insertAt
     })
 
-    // 3) Salva o reorder dos outros no Firebase
     if(Object.keys(updates).length > 0){
       await update(ref(db), updates)
     }
@@ -662,7 +774,7 @@ window.delCard = function(e, id){
   remove(ref(db,"fotocards/"+id))
 }
 
-/* ---- LIGHTBOX ---- */
+/* ── LIGHTBOX ── */
 window.openLb = function(i){
   lbIdx = i; updateLb()
   document.getElementById("lightbox").classList.add("open")
@@ -683,7 +795,7 @@ document.addEventListener("keydown", e => {
   if(e.key==="Escape") closeLb()
 })
 
-/* ---- MODAL HELPERS ---- */
+/* ── MODAL HELPERS ── */
 window.openModal  = id => document.getElementById(id).classList.add("open")
 window.closeModal = id => document.getElementById(id).classList.remove("open")
 window.modalBg    = (e, id) => { if(e.target === document.getElementById(id)) closeModal(id) }
