@@ -32,19 +32,20 @@ justify-content:center;
 align-items:center;
 color:white;
 gap:30px;
-transition:1.5s;
+opacity:1;
+transition:2s;
 }
 
 #loadingText{
-font-size:22px;
-letter-spacing:6px;
-opacity:.7;
+font-size:18px;
+letter-spacing:8px;
+opacity:.6;
 }
 
 #loadingBar{
-width:300px;
-height:3px;
-background:rgba(255,255,255,.2);
+width:280px;
+height:2px;
+background:rgba(255,255,255,.15);
 border-radius:99px;
 overflow:hidden;
 }
@@ -84,13 +85,15 @@ background:rgba(0,0,0,.25);
 z-index:-1;
 }
 
-#transition{
+/* TRANSIÇÃO FADE */
+#curtain{
 position:fixed;
 inset:0;
 background:black;
 z-index:998;
 opacity:1;
-transition:2s;
+transition:2.5s ease;
+pointer-events:none;
 }
 
 #startText{
@@ -104,6 +107,7 @@ color:white;
 z-index:1000;
 opacity:0;
 transition:2s;
+white-space:nowrap;
 }
 
 .frame{
@@ -111,7 +115,7 @@ position:absolute;
 overflow:hidden;
 border:3px solid white;
 opacity:0;
-transition:1s;
+transition:1.2s ease;
 }
 
 .frame iframe{
@@ -121,14 +125,7 @@ border:none;
 pointer-events:none;
 }
 
-.center{
-left:40%;
-top:2%;
-width:18vw;
-height:70vh;
-z-index:50;
-}
-
+.center{ left:40%; top:2%; width:18vw; height:70vh; z-index:50; }
 .v1{ left:4%; top:18%; width:32vw; height:38vh; transform:rotate(-25deg); }
 .v2{ right:4%; top:18%; width:32vw; height:38vh; transform:rotate(25deg); }
 .v3{ left:26%; bottom:2%; width:42vw; height:25vh; }
@@ -172,10 +169,10 @@ text-align:center;
 
 <!-- FUNDO -->
 <div id="bgVideo">
-  <iframe id="iframe0" src="https://www.youtube.com/embed/IfurZy0ckcc?autoplay=1&mute=1&loop=1&playlist=IfurZy0ckcc&controls=0&modestbranding=1&enablejsapi=1" allow="autoplay"></iframe>
+  <iframe src="https://www.youtube.com/embed/IfurZy0ckcc?autoplay=1&mute=1&loop=1&playlist=IfurZy0ckcc&controls=0&modestbranding=1" allow="autoplay"></iframe>
 </div>
 
-<div id="transition"></div>
+<div id="curtain"></div>
 <div id="startText">EVERY MEMORY LEADS HERE</div>
 
 <!-- QUADROS -->
@@ -198,14 +195,23 @@ text-align:center;
 const music = document.getElementById("music")
 const loading = document.getElementById("loading")
 const loadingFill = document.getElementById("loadingFill")
-const transition = document.getElementById("transition")
+const curtain = document.getElementById("curtain")
 const startText = document.getElementById("startText")
 const frames = document.querySelectorAll(".frame")
 
-// Simula progresso de loading (aguarda 8s para os iframes carregarem)
+// Inicia música imediatamente na tela de loading
+music.currentTime = Number(localStorage.getItem("musicTime") || 0)
+music.volume = .35
+music.play().catch(()=>{})
+
+setInterval(()=>{
+  localStorage.setItem("musicTime", music.currentTime)
+}, 500)
+
+// Barra de progresso — 10s de loading
 let progress = 0
 const interval = setInterval(()=>{
-  progress += 100/80 // chega a 100% em ~8s
+  progress += 100 / 100 // 100 steps em 10s (100ms cada)
   if(progress >= 100){
     progress = 100
     clearInterval(interval)
@@ -215,33 +221,25 @@ const interval = setInterval(()=>{
 }, 100)
 
 function startIntro(){
-  // Esconde loading
+
+  // Fade out da tela de loading (suave, 2s)
   loading.style.opacity = "0"
-  setTimeout(()=>{ loading.style.display = "none" }, 1500)
+  setTimeout(()=>{ loading.style.display = "none" }, 2000)
 
-  // Inicia música
-  music.currentTime = Number(localStorage.getItem("musicTime") || 0)
-  music.volume = .35
-  music.play().catch(()=>{})
-
-  setInterval(()=>{
-    localStorage.setItem("musicTime", music.currentTime)
-  }, 500)
-
-  // Abre transição
+  // Fade in da cena (curtain abre suavemente)
   setTimeout(()=>{
-    transition.style.opacity = "0"
-    setTimeout(()=>{ transition.style.display = "none" }, 2000)
-  }, 500)
+    curtain.style.opacity = "0"
+    setTimeout(()=>{ curtain.style.display = "none" }, 2500)
+  }, 1800)
 
   // Mostra frase
-  setTimeout(()=>{ startText.style.opacity = "1" }, 800)
-  setTimeout(()=>{ startText.style.opacity = "0" }, 3000)
+  setTimeout(()=>{ startText.style.opacity = "1" }, 2500)
+  setTimeout(()=>{ startText.style.opacity = "0" }, 4500)
 
   // Aparece quadros um por um
-  const delays = [2000, 2300, 2500, 2700, 2800, 3000, 3100, 3200, 3300, 3400, 3500]
+  const delays = [4000, 4300, 4500, 4700, 4800, 5000, 5100, 5200, 5300, 5400, 5500]
   frames.forEach((f, i)=>{
-    setTimeout(()=>{ f.style.opacity = "1" }, delays[i] || 3500)
+    setTimeout(()=>{ f.style.opacity = "1" }, delays[i] || 5500)
   })
 
   // FINAL
@@ -267,7 +265,7 @@ function startIntro(){
       localStorage.setItem("continueMusic", music.currentTime)
       window.location.href = "home.html"
     }, 12000)
-  }, 17000)
+  }, 21000)
 }
 
 </script>
