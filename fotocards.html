@@ -118,21 +118,34 @@ nav{
 
 .fotocard{
   width:150px; border-radius:14px; overflow:hidden;
-  position:relative; cursor:pointer;
+  position:relative;
   border:1px solid rgba(255,255,255,.06);
   transition:transform .25s, box-shadow .25s, border-color .25s, opacity .2s;
   background:#111120;
   user-select:none;
+  cursor:grab;
+}
+/* desativa todos os eventos de pointer em filhos durante drag */
+.cards-grid.is-dragging .fotocard *{
+  pointer-events: none;
 }
 .fotocard:not(.dragging):hover{
   transform:translateY(-5px) scale(1.03);
   border-color:rgba(255,255,255,.2);
   box-shadow:0 14px 40px rgba(0,0,0,.5);
 }
-.fotocard img{ width:150px; height:225px; object-fit:cover; display:block; pointer-events:none; }
+/* imagens NUNCA são arrastáveis pelo browser */
+.fotocard img{
+  width:150px; height:225px; object-fit:cover; display:block;
+  pointer-events:none;
+  -webkit-user-drag: none;
+  user-drag: none;
+  draggable: false;
+}
 .fotocard-label{
   padding:8px 10px; font-size:11px; opacity:.5;
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  pointer-events:none;
 }
 .fotocard-del{
   position:absolute; top:6px; right:6px;
@@ -146,14 +159,15 @@ nav{
 .fotocard-del:hover{ background:rgba(200,0,0,.6); }
 
 .fotocard.dragging{
-  opacity:.35;
-  transform:scale(.96);
+  opacity:.3;
+  transform:scale(.95);
   cursor:grabbing;
+  border-color: rgba(124,92,255,.5);
 }
-.fotocard[draggable="true"]{ cursor:grab; }
 .fotocard.drag-over{
   border-color:#7c5cff;
   box-shadow:0 0 0 2px #7c5cff;
+  transform: scale(1.03);
 }
 
 .drag-hint{
@@ -322,7 +336,7 @@ nav{
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js"
-import { getDatabase, ref, onValue, push, remove, update, get } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-database.js"
+import { getDatabase, ref, onValue, push, remove, update } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-database.js"
 
 const firebaseConfig = {
   apiKey: "AIzaSyDFShfAw6VJ51hjka27gUebd9fna6o4yGw",
@@ -348,10 +362,8 @@ let curAlbum  = null
 let isAdmin   = localStorage.getItem("isAdmin") === "true"
 let aFile = null, cFile = null
 let lbList = [], lbIdx = 0
-
-// drag state
 let dragSrc = null
-let orderChanged = false  // TRUE = tem mudanças não salvas, bloqueia re-render do Firebase
+let orderChanged = false
 
 function refreshAdminPill(){
   const p = document.getElementById("adminPill")
@@ -360,7 +372,6 @@ function refreshAdminPill(){
 }
 refreshAdminPill()
 
-// Firebase — só re-renderiza se NÃO há mudanças pendentes
 onValue(albumsRef, snap => {
   albums = []
   snap.forEach(c => albums.push({ id:c.key, ...c.val() }))
@@ -372,7 +383,6 @@ onValue(cardsRef, snap => {
   snap.forEach(c => fotocards.push({ id:c.key, ...c.val() }))
   document.getElementById("ls").style.opacity = "0"
   setTimeout(() => document.getElementById("ls").style.display = "none", 1000)
-  // ← CORREÇÃO: só re-renderiza se não há reordenação pendente
   if(!orderChanged) render()
 })
 
@@ -392,7 +402,7 @@ function renderAlbums(){
   albums.forEach(a => {
     const count = fotocards.filter(c => c.albumId === a.id).length
     const thumb = a.cover
-      ? `<img class="album-thumb" src="${a.cover}">`
+      ? `<img class="album-thumb" src="${a.cover}" draggable="false">`
       : `<div class="album-thumb-placeholder">📀</div>`
     const del = isAdmin
       ? `<div class="album-del" onclick="delAlbum(event,'${a.id}')">✕</div>`
@@ -457,8 +467,9 @@ function renderCards(){
       card.addEventListener("drop",      onDrop)
     }
 
+    // imagem com draggable=false para evitar que o browser arraste a img separado
     card.innerHTML = `
-      <img src="${c.img}" onerror="this.src='https://via.placeholder.com/150x225'">
+      <img src="${c.img}" draggable="false" onerror="this.src='https://via.placeholder.com/150x225'">
       ${isAdmin ? `<div class="fotocard-del" onclick="delCard(event,'${c.id}')">✕</div>` : ""}
       ${c.name ? `<div class="fotocard-label">${c.name}</div>` : ""}
     `
@@ -485,28 +496,41 @@ function renderCards(){
 /* ---- DRAG AND DROP ---- */
 function onDragStart(e){
   dragSrc = this
-  this.classList.add("dragging")
+  // Pequeno delay para o browser capturar o ghost antes de esconder
+  setTimeout(() => this.classList.add("dragging"), 0)
+
+  // Adiciona classe no grid para desativar pointer-events nos filhos
+  const grid = document.getElementById("cardsGrid")
+  if(grid) grid.classList.add("is-dragging")
+
   e.dataTransfer.effectAllowed = "move"
   e.dataTransfer.setData("text/plain", this.dataset.id)
 }
 
 function onDragEnd(){
+  if(dragSrc) dragSrc.classList.remove("dragging")
   dragSrc = null
-  document.querySelectorAll(".fotocard").forEach(c => {
-    c.classList.remove("dragging","drag-over")
-  })
+
+  const grid = document.getElementById("cardsGrid")
+  if(grid) grid.classList.remove("is-dragging")
+
+  document.querySelectorAll(".fotocard").forEach(c => c.classList.remove("drag-over"))
 }
 
 function onDragOver(e){
   e.preventDefault()
   e.dataTransfer.dropEffect = "move"
-  if(this !== dragSrc){
+  if(dragSrc && this !== dragSrc){
+    document.querySelectorAll(".fotocard").forEach(c => c.classList.remove("drag-over"))
     this.classList.add("drag-over")
   }
 }
 
-function onDragLeave(){
-  this.classList.remove("drag-over")
+function onDragLeave(e){
+  // só remove se realmente saiu do card (não entrou num filho)
+  if(!this.contains(e.relatedTarget)){
+    this.classList.remove("drag-over")
+  }
 }
 
 function onDrop(e){
@@ -516,9 +540,9 @@ function onDrop(e){
   if(!dragSrc || this === dragSrc) return
 
   const grid = document.getElementById("cardsGrid")
-  const cards = [...grid.querySelectorAll(".fotocard")]
-  const srcIdx  = cards.indexOf(dragSrc)
-  const destIdx = cards.indexOf(this)
+  const allCards = [...grid.querySelectorAll(".fotocard")]
+  const srcIdx  = allCards.indexOf(dragSrc)
+  const destIdx = allCards.indexOf(this)
 
   if(srcIdx < destIdx){
     grid.insertBefore(dragSrc, this.nextSibling)
@@ -526,7 +550,6 @@ function onDrop(e){
     grid.insertBefore(dragSrc, this)
   }
 
-  // CORREÇÃO: marca como pendente ANTES de qualquer update do Firebase
   orderChanged = true
   document.getElementById("saveOrderBtn").style.display = "block"
 }
@@ -548,8 +571,7 @@ window.saveOrder = async function(){
     })
     await update(ref(db), updates)
 
-    // Atualiza array local com a nova ordem para que o próximo render do Firebase
-    // não cause reordenação indesejada
+    // Atualiza array local
     cards.forEach((el, i) => {
       const fc = fotocards.find(f => f.id === el.dataset.id)
       if(fc) fc.order = i
@@ -557,8 +579,6 @@ window.saveOrder = async function(){
 
     btn.innerText = "✅ Salvo!"
     btn.style.background = "#1a6a1a"
-
-    // Só agora libera o Firebase para re-renderizar
     orderChanged = false
 
     setTimeout(() => {
@@ -628,7 +648,7 @@ async function upload(file, onProg){
   })
 }
 
-/* ---- DROP ZONES ---- */
+/* ---- DROP ZONES (modais) ---- */
 function setupDrop(dropId, fileId, previewId, nameId, onFile){
   const drop = document.getElementById(dropId)
   const inp  = document.getElementById(fileId)
