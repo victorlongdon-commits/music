@@ -164,7 +164,6 @@ grid-template-columns:repeat(auto-fill, minmax(160px, 1fr));
 gap:16px;
 padding:16px 30px 40px;
 width:100%;
-align-items:start; /* ← impede stretch vertical que causava o bug */
 }
 
 .photoCard{
@@ -175,14 +174,13 @@ transition:.3s;
 position:relative;
 background:rgba(255,255,255,.04);
 border:1px solid rgba(255,255,255,.08);
-height:fit-content; /* ← cada card ocupa só sua altura natural */
 }
 
 .photoCard:hover{ transform:scale(1.03); }
 
 .photoCard img{
 width:100%;
-aspect-ratio:2/3;
+height:240px;
 object-fit:cover;
 display:block;
 }
@@ -236,7 +234,7 @@ z-index:10;
 .addPhotoCard{
 border-radius:12px;
 border:2px dashed rgba(255,255,255,.2);
-aspect-ratio:2/3;
+height:240px;
 display:flex;
 flex-direction:column;
 align-items:center;
@@ -246,7 +244,6 @@ transition:.3s;
 font-size:12px;
 opacity:.5;
 gap:8px;
-height:fit-content;
 }
 
 .addPhotoCard:hover{ opacity:1; border-color:#7c5cff; }
