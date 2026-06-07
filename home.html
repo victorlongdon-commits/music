@@ -263,6 +263,77 @@ cursor:pointer;
 margin-right:6px;
 }
 
+/* SEARCH DROPDOWN */
+.searchWrap{
+position:relative;
+}
+
+#searchDropdown{
+position:absolute;
+top:calc(100% + 8px);
+left:0;
+width:360px;
+background:#1a1a1a;
+border-radius:15px;
+overflow:hidden;
+display:none;
+z-index:9999;
+box-shadow:0 8px 40px rgba(0,0,0,.6);
+max-height:380px;
+overflow-y:auto;
+}
+
+.searchItem{
+display:flex;
+align-items:center;
+gap:12px;
+padding:10px 14px;
+transition:.2s;
+cursor:default;
+}
+
+.searchItem:hover{ background:rgba(255,255,255,.07); }
+
+.searchItem img{
+width:44px; height:44px;
+border-radius:8px;
+object-fit:cover;
+flex-shrink:0;
+}
+
+.searchItemName{
+flex:1;
+font-size:14px;
+white-space:nowrap;
+overflow:hidden;
+text-overflow:ellipsis;
+}
+
+.searchItemBtns{
+display:flex;
+gap:6px;
+flex-shrink:0;
+}
+
+.searchItemBtns button{
+margin:0;
+padding:6px 10px;
+font-size:12px;
+border-radius:8px;
+border:none;
+cursor:pointer;
+}
+
+.btnPlay{ background:#7c5cff; color:white; }
+.btnQueue{ background:#333; color:white; }
+
+.searchEmpty{
+padding:20px;
+text-align:center;
+opacity:.4;
+font-size:14px;
+}
+
 /* LOADING */
 #loadingScreen{
 position:fixed;
@@ -291,7 +362,10 @@ transition:1.5s;
 
 <nav>
   ☰
-  <input class="search" id="search" placeholder="Search">
+  <div class="searchWrap">
+    <input class="search" id="search" placeholder="🔍 Search..." autocomplete="off">
+    <div id="searchDropdown"></div>
+  </div>
   <div class="menu">
     <div>FOTOS</div>
     <div>TURNÊS</div>
@@ -516,13 +590,97 @@ playBtn.onclick = () => {
   else { player.pause(); playBtn.innerText = "▶" }
 }
 
-document.getElementById("search").addEventListener("keydown", (e) => {
-  if(e.key === "Enter"){
-    const v = e.target.value.toLowerCase()
-    const i = songs.findIndex(s => s.name.toLowerCase().includes(v))
-    if(i !== -1){ current = i; load() }
-    e.target.value = ""
+// PESQUISA INTELIGENTE
+function levenshtein(a, b){
+  const m = a.length, n = b.length
+  const dp = Array.from({length:m+1}, (_,i) => Array.from({length:n+1}, (_,j) => i===0?j:j===0?i:0))
+  for(let i=1;i<=m;i++) for(let j=1;j<=n;j++)
+    dp[i][j] = a[i-1]===b[j-1] ? dp[i-1][j-1] : 1+Math.min(dp[i-1][j],dp[i][j-1],dp[i-1][j-1])
+  return dp[m][n]
+}
+
+function scoreSong(song, query){
+  const name = song.name.toLowerCase()
+  const q = query.toLowerCase()
+  if(name.includes(q)) return 1000 - name.indexOf(q) // começa do início = mais relevante
+  // similaridade por palavras
+  const words = name.split(" ")
+  const qWords = q.split(" ")
+  let best = Infinity
+  for(const w of words) for(const qw of qWords)
+    best = Math.min(best, levenshtein(w, qw))
+  return Math.max(0, 100 - best * 20)
+}
+
+function searchSongs(query){
+  if(!query.trim()) return []
+  return songs
+    .map((s,i) => ({ ...s, index:i, score: scoreSong(s, query) }))
+    .filter(s => s.score > 0)
+    .sort((a,b) => b.score - a.score)
+    .slice(0, 6)
+}
+
+function renderDropdown(query){
+  const dropdown = document.getElementById("searchDropdown")
+  if(!query.trim()){
+    dropdown.style.display = "none"
+    return
   }
+  const results = searchSongs(query)
+  dropdown.style.display = "block"
+  if(results.length === 0){
+    dropdown.innerHTML = `<div class="searchEmpty">Nenhuma música encontrada</div>`
+    return
+  }
+  dropdown.innerHTML = results.map(s => `
+    <div class="searchItem">
+      <img src="${s.cover}" onerror="this.src='https://via.placeholder.com/44'">
+      <span class="searchItemName">${s.name}</span>
+      <div class="searchItemBtns">
+        <button class="btnPlay" onclick="playSong(${s.index})">▶ Tocar</button>
+        <button class="btnQueue" onclick="queueSong(${s.index})">+ Fila</button>
+      </div>
+    </div>
+  `).join("")
+}
+
+window.playSong = (i) => {
+  current = i
+  load()
+  closeDropdown()
+}
+
+window.queueSong = (i) => {
+  queue.push(i)
+  const dropdown = document.getElementById("searchDropdown")
+  const items = dropdown.querySelectorAll(".searchItem")
+  const results = searchSongs(document.getElementById("search").value)
+  const idx = results.findIndex(s => s.index === i)
+  if(items[idx]){
+    items[idx].style.background = "rgba(124,92,255,.2)"
+    setTimeout(()=>{ items[idx].style.background = "" }, 800)
+  }
+}
+
+function closeDropdown(){
+  document.getElementById("searchDropdown").style.display = "none"
+  document.getElementById("search").value = ""
+}
+
+const searchInput = document.getElementById("search")
+searchInput.addEventListener("input", (e) => renderDropdown(e.target.value))
+searchInput.addEventListener("keydown", (e) => {
+  if(e.key === "Escape") closeDropdown()
+  if(e.key === "Enter"){
+    const results = searchSongs(e.target.value)
+    if(results.length > 0) playSong(results[0].index)
+  }
+})
+
+// Fecha dropdown ao clicar fora
+document.addEventListener("click", (e) => {
+  if(!e.target.closest(".searchWrap")) closeDropdown()
 })
 
 // CLOUDINARY UPLOAD
