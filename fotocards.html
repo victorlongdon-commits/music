@@ -15,7 +15,6 @@ min-height:100vh;
 overflow-x:hidden;
 }
 
-/* NAV */
 nav{
 height:65px;
 display:flex;
@@ -59,11 +58,9 @@ transition:.2s;
 .navBtnFav{ background:rgba(255,80,80,.15); color:#ff6b6b; border:1px solid rgba(255,80,80,.3); }
 .navBtnFav:hover{ background:rgba(255,80,80,.25); }
 
-/* VIEWS */
 #viewAlbums, #viewCards, #viewFavs{ display:none; }
 #viewAlbums.active, #viewCards.active, #viewFavs.active{ display:block; }
 
-/* SECTION HEADER */
 .sectionHeader{
 padding:30px 30px 10px;
 display:flex;
@@ -103,9 +100,7 @@ object-fit:cover;
 display:block;
 }
 
-.albumCardInfo{
-padding:12px;
-}
+.albumCardInfo{ padding:12px; }
 
 .albumCardName{
 font-size:14px;
@@ -157,13 +152,14 @@ height:fit-content;
 .addAlbumCard:hover{ opacity:1; border-color:#7c5cff; }
 .addAlbumCard span{ font-size:32px; }
 
-/* FOTOCARDS GRID — CORRIGIDO */
+/* FOTOCARDS GRID */
 .cardsGrid{
 display:grid;
 grid-template-columns:repeat(auto-fill, minmax(160px, 1fr));
 gap:16px;
 padding:16px 30px 40px;
 width:100%;
+align-items:start;
 }
 
 .photoCard{
@@ -180,7 +176,7 @@ border:1px solid rgba(255,255,255,.08);
 
 .photoCard img{
 width:100%;
-height:240px;
+aspect-ratio:2/3;
 object-fit:cover;
 display:block;
 }
@@ -231,10 +227,11 @@ z-index:10;
 
 .adminMode .photoCardDel{ display:flex; }
 
+/* Botão adicionar foto — mesma altura que o card via aspect-ratio */
 .addPhotoCard{
 border-radius:12px;
 border:2px dashed rgba(255,255,255,.2);
-height:240px;
+aspect-ratio:2/3;
 display:flex;
 flex-direction:column;
 align-items:center;
@@ -367,7 +364,6 @@ border-radius:10px; background:#333;
 color:white; font-size:15px; cursor:pointer;
 }
 
-/* MULTI UPLOAD LIST */
 .uploadList{ max-height:200px; overflow-y:auto; margin-top:10px; }
 .uploadItem{
 display:flex; align-items:center; gap:10px;
@@ -376,7 +372,6 @@ border-radius:8px; margin-bottom:6px; font-size:13px;
 }
 .uploadItem img{ width:36px; height:36px; border-radius:6px; object-fit:cover; }
 
-/* EMPTY */
 .emptyState{
 padding:60px 30px;
 text-align:center;
@@ -384,22 +379,10 @@ opacity:.4;
 }
 .emptyState span{ font-size:48px; display:block; margin-bottom:12px; }
 
-/* TAG MEMBER */
-.memberTag{
-display:inline-block;
-padding:3px 10px;
-border-radius:20px;
-font-size:11px;
-background:rgba(124,92,255,.3);
-color:#b39dff;
-margin-top:6px;
-}
-
 </style>
 </head>
 <body>
 
-<!-- NAV -->
 <nav>
   <a class="navBack" href="home.html">←</a>
   <h1 id="navTitle">Fotocards</h1>
@@ -409,7 +392,6 @@ margin-top:6px;
   </div>
 </nav>
 
-<!-- VIEW: ÁLBUNS -->
 <div id="viewAlbums" class="active">
   <div class="sectionHeader">
     <h2>Álbuns & Eras</h2>
@@ -417,7 +399,6 @@ margin-top:6px;
   <div class="albumGrid" id="albumGrid"></div>
 </div>
 
-<!-- VIEW: FOTOCARDS DO ÁLBUM -->
 <div id="viewCards">
   <div class="sectionHeader">
     <div>
@@ -429,7 +410,6 @@ margin-top:6px;
   <div class="cardsGrid" id="cardsGrid"></div>
 </div>
 
-<!-- VIEW: FAVORITOS -->
 <div id="viewFavs">
   <div class="sectionHeader">
     <div>
@@ -441,7 +421,6 @@ margin-top:6px;
   <div class="cardsGrid" id="favsGrid"></div>
 </div>
 
-<!-- LIGHTBOX -->
 <div id="lightbox">
   <div class="lightboxNav" id="lbPrev" onclick="lbNavigate(-1)">‹</div>
   <img id="lightboxImg" src="">
@@ -496,8 +475,8 @@ margin-top:6px;
 
 <script type="module">
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js"
-import { getDatabase, ref, onValue, push, remove, get } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-database.js"
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"
+import { getDatabase, ref, onValue, push, remove, off } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js"
 
 const firebaseConfig = {
   apiKey: "AIzaSyDFShfAw6VJ51hjka27gUebd9fna6o4yGw",
@@ -525,7 +504,9 @@ let albumCoverFile = null
 let isAdmin = false
 let favorites = JSON.parse(localStorage.getItem("fcFavorites")) || []
 
-// FIREBASE LISTENERS
+// Guarda referência do listener ativo de cards para cancelar antes de criar outro
+let cardsListenerRef = null
+
 onValue(ref(db, "fcAlbums"), snap => {
   albums = []
   snap.forEach(c => albums.push({ id:c.key, ...c.val() }))
@@ -534,6 +515,11 @@ onValue(ref(db, "fcAlbums"), snap => {
 
 // VIEWS
 window.showAlbums = () => {
+  // Cancela listener de cards ao sair da view
+  if(cardsListenerRef) {
+    off(cardsListenerRef)
+    cardsListenerRef = null
+  }
   setView("viewAlbums")
   document.getElementById("navTitle").innerText = "Fotocards"
   renderAlbums()
@@ -546,13 +532,20 @@ window.showFavs = () => {
 }
 
 function showCards(albumId){
+  // Cancela listener anterior antes de criar um novo
+  if(cardsListenerRef) {
+    off(cardsListenerRef)
+    cardsListenerRef = null
+  }
+
   currentAlbumId = albumId
   const album = albums.find(a => a.id === albumId)
   document.getElementById("albumTitle").innerText = album?.name || ""
   document.getElementById("navTitle").innerText = album?.name || ""
   setView("viewCards")
 
-  onValue(ref(db, `fcCards/${albumId}`), snap => {
+  cardsListenerRef = ref(db, `fcCards/${albumId}`)
+  onValue(cardsListenerRef, snap => {
     currentCards = []
     snap.forEach(c => currentCards.push({ id:c.key, ...c.val() }))
     renderCards()
@@ -566,13 +559,10 @@ function setView(id){
   document.getElementById(id).classList.add("active")
 }
 
-// RENDER ÁLBUNS
 function renderAlbums(){
   const grid = document.getElementById("albumGrid")
-  const body = document.body
-
-  if(isAdmin) body.classList.add("adminMode")
-  else body.classList.remove("adminMode")
+  if(isAdmin) document.body.classList.add("adminMode")
+  else document.body.classList.remove("adminMode")
 
   if(albums.length === 0 && !isAdmin){
     grid.innerHTML = `<div class="emptyState" style="grid-column:1/-1"><span>🎴</span>Nenhum álbum ainda</div>`
@@ -607,7 +597,6 @@ window.deleteAlbum = async (e, id) => {
   await remove(ref(db, `fcCards/${id}`))
 }
 
-// RENDER FOTOCARDS
 function renderCards(){
   const grid = document.getElementById("cardsGrid")
   document.getElementById("cardCount").innerText = `${currentCards.length} fotocards`
@@ -634,7 +623,6 @@ function renderCards(){
   ` : "")
 }
 
-// RENDER FAVORITOS
 function renderFavs(){
   const grid = document.getElementById("favsGrid")
   document.getElementById("favCount").innerText = `${favorites.length} fotocards`
@@ -649,13 +637,12 @@ function renderFavs(){
       <img src="${url}" loading="lazy">
       <div class="photoCardOverlay">
         <button class="overlayBtn overlayBtnView" onclick="openLightboxFav(${i})">👁</button>
-        <button class="overlayBtn overlayBtnFav faved" onclick="removeFav('${url}',this)">♥</button>
+        <button class="overlayBtn overlayBtnFav faved" onclick="removeFav('${url}')">♥</button>
       </div>
     </div>
   `).join("")
 }
 
-// FAVORITOS
 window.toggleFav = (url, btn) => {
   const idx = favorites.indexOf(url)
   if(idx === -1){ favorites.push(url); btn.classList.add("faved") }
@@ -663,13 +650,12 @@ window.toggleFav = (url, btn) => {
   localStorage.setItem("fcFavorites", JSON.stringify(favorites))
 }
 
-window.removeFav = (url, btn) => {
+window.removeFav = (url) => {
   favorites = favorites.filter(f => f !== url)
   localStorage.setItem("fcFavorites", JSON.stringify(favorites))
   renderFavs()
 }
 
-// LIGHTBOX
 window.openLightbox = (i) => {
   lightboxIndex = i
   lightboxCards = [...currentCards]
@@ -719,7 +705,6 @@ window.downloadCurrent = () => {
   a.click()
 }
 
-// Fechar lightbox com Esc / setas
 document.addEventListener("keydown", e => {
   if(!document.getElementById("lightbox").classList.contains("open")) return
   if(e.key === "Escape") closeLightbox()
@@ -727,7 +712,6 @@ document.addEventListener("keydown", e => {
   if(e.key === "ArrowLeft") lbNavigate(-1)
 })
 
-// CLOUDINARY
 async function uploadToCloudinary(file, onProgress){
   return new Promise((resolve, reject) => {
     const fd = new FormData()
@@ -745,7 +729,6 @@ async function uploadToCloudinary(file, onProgress){
   })
 }
 
-// DROP ZONES
 function setupDrop(zoneId, inputId, onFiles){
   const zone = document.getElementById(zoneId)
   const input = document.getElementById(inputId)
@@ -776,7 +759,6 @@ setupDrop("cardsDropZone", "cardsInput", files => {
   document.getElementById("cardsInput").value = ""
 })
 
-// SUBMIT ÁLBUM
 window.submitAlbum = async () => {
   const name = document.getElementById("albumName").value.trim()
   const artist = document.getElementById("albumArtist").value.trim()
@@ -797,7 +779,6 @@ window.submitAlbum = async () => {
   }
 }
 
-// SUBMIT FOTOCARDS
 window.submitCards = async () => {
   if(!pendingFiles.length){ alert("Selecione pelo menos uma imagem!"); return }
   if(!currentAlbumId){ alert("Erro: nenhum álbum selecionado."); return }
@@ -817,24 +798,18 @@ window.submitCards = async () => {
     fill.style.width = "100%"
     status.innerText = `✅ ${pendingFiles.length} fotocards adicionados!`
     pendingFiles = []
-    setTimeout(() => {
-      closeModal("modalCards")
-      showCards(currentAlbumId)
-    }, 1000)
+    setTimeout(() => closeModal("modalCards"), 1000)
   } catch(e) {
     status.innerText = "❌ Erro no upload."
     console.error(e)
   }
 }
 
-// DELETE CARD
 window.deleteCard = async (id) => {
   if(!confirm("Apagar este fotocard?")) return
   await remove(ref(db, `fcCards/${currentAlbumId}/${id}`))
-  showCards(currentAlbumId)
 }
 
-// ADMIN
 window.toggleAdmin = () => {
   if(!isAdmin){
     const key = prompt("Admin key:")
@@ -852,7 +827,6 @@ window.toggleAdmin = () => {
   renderAlbums()
 }
 
-// MODAL HELPERS
 window.openModal = (id) => { document.getElementById(id).style.display = "flex" }
 window.closeModal = (id) => {
   document.getElementById(id).style.display = "none"
@@ -866,7 +840,6 @@ window.closeModal = (id) => {
   pendingFiles = []
 }
 
-// INIT
 renderAlbums()
 
 </script>
