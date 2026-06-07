@@ -20,7 +20,6 @@ height:100vh;
 font-family:Arial;
 }
 
-/* LOADING */
 #loading{
 position:fixed;
 inset:0;
@@ -58,7 +57,6 @@ border-radius:99px;
 transition:.3s;
 }
 
-/* FUNDO */
 #bgVideo{
 position:fixed;
 inset:0;
@@ -85,7 +83,6 @@ background:rgba(0,0,0,.25);
 z-index:-1;
 }
 
-/* TRANSIÇÃO FADE */
 #curtain{
 position:fixed;
 inset:0;
@@ -161,13 +158,11 @@ text-align:center;
   <source src="music/euphoria.mp3">
 </audio>
 
-<!-- LOADING -->
 <div id="loading">
   <div id="loadingText">LOADING</div>
   <div id="loadingBar"><div id="loadingFill"></div></div>
 </div>
 
-<!-- FUNDO -->
 <div id="bgVideo">
   <iframe src="https://www.youtube.com/embed/IfurZy0ckcc?autoplay=1&mute=1&loop=1&playlist=IfurZy0ckcc&controls=0&modestbranding=1" allow="autoplay"></iframe>
 </div>
@@ -175,7 +170,6 @@ text-align:center;
 <div id="curtain"></div>
 <div id="startText">EVERY MEMORY LEADS HERE</div>
 
-<!-- QUADROS -->
 <div class="frame v1"><iframe src="https://www.youtube.com/embed/IfurZy0ckcc?autoplay=1&mute=1&loop=1&playlist=IfurZy0ckcc&controls=0&modestbranding=1" allow="autoplay"></iframe></div>
 <div class="frame v2"><iframe src="https://www.youtube.com/embed/zCtRk1oDOKI?autoplay=1&mute=1&loop=1&playlist=zCtRk1oDOKI&controls=0&modestbranding=1" allow="autoplay"></iframe></div>
 <div class="frame v3"><iframe src="https://www.youtube.com/embed/q86HF4qWQu0?autoplay=1&mute=1&loop=1&playlist=q86HF4qWQu0&controls=0&modestbranding=1" allow="autoplay"></iframe></div>
@@ -199,7 +193,7 @@ const curtain = document.getElementById("curtain")
 const startText = document.getElementById("startText")
 const frames = document.querySelectorAll(".frame")
 
-// Inicia música imediatamente na tela de loading
+// Continua a música de onde o intro parou
 music.currentTime = Number(localStorage.getItem("musicTime") || 0)
 music.volume = .35
 music.play().catch(()=>{})
@@ -208,12 +202,11 @@ setInterval(()=>{
   localStorage.setItem("musicTime", music.currentTime)
 }, 500)
 
-// Barra de progresso — 10s de loading
+// Barra de progresso — 10s
 let progress = 0
 const interval = setInterval(()=>{
-  progress += 100 / 100 // 100 steps em 10s (100ms cada)
+  progress += 1
   if(progress >= 100){
-    progress = 100
     clearInterval(interval)
     startIntro()
   }
@@ -222,27 +215,27 @@ const interval = setInterval(()=>{
 
 function startIntro(){
 
-  // Fade out da tela de loading (suave, 2s)
+  // Fade out loading
   loading.style.opacity = "0"
   setTimeout(()=>{ loading.style.display = "none" }, 2000)
 
-  // Fade in da cena (curtain abre suavemente)
+  // Fade in cena
   setTimeout(()=>{
     curtain.style.opacity = "0"
     setTimeout(()=>{ curtain.style.display = "none" }, 2500)
   }, 1800)
 
-  // Mostra frase
+  // Frase
   setTimeout(()=>{ startText.style.opacity = "1" }, 2500)
   setTimeout(()=>{ startText.style.opacity = "0" }, 4500)
 
-  // Aparece quadros um por um
-  const delays = [4000, 4300, 4500, 4700, 4800, 5000, 5100, 5200, 5300, 5400, 5500]
-  frames.forEach((f, i)=>{
+  // Quadros aparecem
+  const delays = [4000,4300,4500,4700,4800,5000,5100,5200,5300,5400,5500]
+  frames.forEach((f,i)=>{
     setTimeout(()=>{ f.style.opacity = "1" }, delays[i] || 5500)
   })
 
-  // FINAL
+  // Final
   setTimeout(()=>{
     frames.forEach(v=>{ v.style.opacity = ".15" })
     const end = document.getElementById("final")
@@ -262,7 +255,9 @@ function startIntro(){
       end.innerHTML = `<div style="font-size:80px;">ENJOY</div>`
     }, 8000)
     setTimeout(()=>{
+      // Salva tempo da música e marca que já entrou
       localStorage.setItem("continueMusic", music.currentTime)
+      localStorage.setItem("jaEntrou", "true")
       window.location.href = "home.html"
     }, 12000)
   }, 21000)
