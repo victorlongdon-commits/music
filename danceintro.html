@@ -4,7 +4,6 @@
 <head>
 
 <meta charset="UTF-8">
-
 <title>DANCE INTRO</title>
 
 <style>
@@ -16,182 +15,92 @@ box-sizing:border-box;
 }
 
 body{
-
 background:black;
-
 overflow:hidden;
-
 height:100vh;
-
 }
 
-/* VIDEO FUNDO */
-
 #bgVideo{
-
 position:fixed;
-
 inset:0;
-
 width:100%;
-
 height:100%;
-
 object-fit:cover;
-
-filter:
-
-blur(35px)
-
-brightness(.3);
-
-transform:
-
-scale(1.2);
-
+filter:blur(35px) brightness(.3);
+transform:scale(1.2);
 z-index:-2;
+pointer-events:none;
+}
 
+#bgVideo iframe{
+width:100%;
+height:100%;
+border:none;
+pointer-events:none;
 }
 
 body::after{
-
 content:"";
-
 position:fixed;
-
 inset:0;
-
-background:
-
-rgba(
-0,
-0,
-0,
-.25
-);
-
+background:rgba(0,0,0,.25);
 z-index:-1;
-
 }
 
-/* TRANSICAO */
-
 #transition{
-
 position:fixed;
-
 inset:0;
-
 background:black;
-
 z-index:999;
-
-animation:
-
-open 3s forwards;
-
+animation:open 3s forwards;
 }
 
 @keyframes open{
-
 to{
-
 opacity:0;
-
 visibility:hidden;
-
 }
-
 }
-
-/* FRASE */
 
 #startText{
-
 position:fixed;
-
 top:50%;
-
 left:50%;
-
-transform:
-
-translate(
--50%,
--50%
-);
-
+transform:translate(-50%,-50%);
 font-size:50px;
-
 letter-spacing:8px;
-
 color:white;
-
 z-index:1000;
-
 transition:2s;
-
 }
 
-/* QUADROS */
-
 .frame{
-
 position:absolute;
-
 overflow:hidden;
-
-border:
-
-3px solid white;
-
+border:3px solid white;
 opacity:0;
-
-animation:
-
-appear 2s forwards;
-
+animation:appear 2s forwards;
 }
 
 @keyframes appear{
-
-to{
-
-opacity:1;
-
+to{ opacity:1; }
 }
 
-}
-
-video{
-
+.frame iframe{
 width:100%;
-
 height:100%;
-
-object-fit:cover;
-
+border:none;
+pointer-events:none;
 }
-
-/* CENTRO */
 
 .center{
-
 left:40%;
-
 top:2%;
-
 width:18vw;
-
 height:70vh;
-
 z-index:50;
-
 animation-delay:2s;
-
 }
-
-/* BTS */
 
 .v1{
 left:4%;
@@ -276,31 +185,18 @@ animation-delay:3.5s;
 }
 
 #final{
-
 position:fixed;
-
 inset:0;
-
 background:black;
-
 display:none;
-
 justify-content:center;
-
 align-items:center;
-
 flex-direction:column;
-
 color:white;
-
 z-index:99999;
-
 opacity:0;
-
 transition:3s;
-
 text-align:center;
-
 }
 
 </style>
@@ -310,220 +206,87 @@ text-align:center;
 <body>
 
 <audio id="music">
-
-<source src="music/euphoria.mp3">
-
+  <source src="music/euphoria.mp3">
 </audio>
 
 <!-- FUNDO -->
-
-<video id="bgVideo" autoplay muted loop>
-  <source src="https://drive.google.com/uc?export=download&id=19S2VxRI_ZaWVxTeQ8sb2e_DPiVZJ0x4A">
-</video>
-
-<div id="transition"></div>
-
-<div id="startText">
-
-EVERY MEMORY LEADS HERE
-
+<div id="bgVideo">
+  <iframe src="https://www.youtube.com/embed/IfurZy0ckcc?autoplay=1&mute=1&loop=1&playlist=IfurZy0ckcc&controls=0&showinfo=0&modestbranding=1" allow="autoplay"></iframe>
 </div>
 
-<!-- QUADROS -->
+<div id="transition"></div>
+<div id="startText">EVERY MEMORY LEADS HERE</div>
 
-<div class="frame v1"><video autoplay muted loop><source src="https://drive.google.com/uc?export=download&id=19S2VxRI_ZaWVxTeQ8sb2e_DPiVZJ0x4A"></video></div>
-<div class="frame v2"><video autoplay muted loop><source src="https://drive.google.com/uc?export=download&id=14QiaMJ0sKoJhDSiXGpQDKYBem3plPeMf"></video></div>
-<div class="frame v3"><video autoplay muted loop><source src="https://drive.google.com/uc?export=download&id=1dfQnk2H6kOWXrq7GZ4AjcxMrEtfE-2-z"></video></div>
-<div class="frame v4"><video autoplay muted loop><source src="https://drive.google.com/uc?export=download&id=1m6C1hqXEBiTcDIZAp5LzFzbO2AejRZ4C"></video></div>
-<div class="frame v5"><video autoplay muted loop><source src="https://drive.google.com/uc?export=download&id=1vdt92_VBgTINw6aD3JVy_WDTfAchPJi4"></video></div>
-<div class="frame v6"><video autoplay muted loop><source src="https://drive.google.com/uc?export=download&id=1R3R-UMXAn4L_vb9eO5hJi5-0SEFLiWdA"></video></div>
-<div class="frame v7"><video autoplay muted loop><source src="https://drive.google.com/uc?export=download&id=1fT_ENFc8Xv_qOW71Yqb5j-ZguWUbvxVm"></video></div>
-<div class="frame v8"><video autoplay muted loop><source src="https://drive.google.com/uc?export=download&id=1X8q6tcgi-0yBHqJE73nLQ0Ad4NJHj7m5"></video></div>
-<div class="frame v9"><video autoplay muted loop><source src="https://drive.google.com/uc?export=download&id=1YMDgUXYYeU-ex5nx7VQvJmM36Yt_nxuL"></video></div>
-<div class="frame v10"><video autoplay muted loop><source src="https://drive.google.com/uc?export=download&id=1gq4N8a48uCfhBuzXG9h7ZConHBXTy_o0"></video></div>
+<!-- QUADROS -->
+<div class="frame v1"><iframe src="https://www.youtube.com/embed/IfurZy0ckcc?autoplay=1&mute=1&loop=1&playlist=IfurZy0ckcc&controls=0&showinfo=0&modestbranding=1" allow="autoplay"></iframe></div>
+<div class="frame v2"><iframe src="https://www.youtube.com/embed/zCtRk1oDOKI?autoplay=1&mute=1&loop=1&playlist=zCtRk1oDOKI&controls=0&showinfo=0&modestbranding=1" allow="autoplay"></iframe></div>
+<div class="frame v3"><iframe src="https://www.youtube.com/embed/q86HF4qWQu0?autoplay=1&mute=1&loop=1&playlist=q86HF4qWQu0&controls=0&showinfo=0&modestbranding=1" allow="autoplay"></iframe></div>
+<div class="frame v4"><iframe src="https://www.youtube.com/embed/xDWO2dk3d08?autoplay=1&mute=1&loop=1&playlist=xDWO2dk3d08&controls=0&showinfo=0&modestbranding=1" allow="autoplay"></iframe></div>
+<div class="frame v5"><iframe src="https://www.youtube.com/embed/aabzHbj-wOY?autoplay=1&mute=1&loop=1&playlist=aabzHbj-wOY&controls=0&showinfo=0&modestbranding=1" allow="autoplay"></iframe></div>
+<div class="frame v6"><iframe src="https://www.youtube.com/embed/ujTwQAluTlQ?autoplay=1&mute=1&loop=1&playlist=ujTwQAluTlQ&controls=0&showinfo=0&modestbranding=1" allow="autoplay"></iframe></div>
+<div class="frame v7"><iframe src="https://www.youtube.com/embed/NELEUqaD87U?autoplay=1&mute=1&loop=1&playlist=NELEUqaD87U&controls=0&showinfo=0&modestbranding=1" allow="autoplay"></iframe></div>
+<div class="frame v8"><iframe src="https://www.youtube.com/embed/b8jJRNhcsaA?autoplay=1&mute=1&loop=1&playlist=b8jJRNhcsaA&controls=0&showinfo=0&modestbranding=1" allow="autoplay"></iframe></div>
+<div class="frame v9"><iframe src="https://www.youtube.com/embed/VHJPKDDJkPs?autoplay=1&mute=1&loop=1&playlist=VHJPKDDJkPs&controls=0&showinfo=0&modestbranding=1" allow="autoplay"></iframe></div>
+<div class="frame v10"><iframe src="https://www.youtube.com/embed/ctpPoe9FZAg?autoplay=1&mute=1&loop=1&playlist=ctpPoe9FZAg&controls=0&showinfo=0&modestbranding=1" allow="autoplay"></iframe></div>
 
 <!-- CENTRO -->
-
 <div class="frame center">
-  <video autoplay muted loop>
-    <source src="https://drive.google.com/uc?export=download&id=18MgM5DbBGkPjW78Jc6mGVfMj04MX4ynl">
-  </video>
+  <iframe src="https://www.youtube.com/embed/UH6o_WIXnjI?autoplay=1&mute=1&loop=1&playlist=UH6o_WIXnjI&controls=0&showinfo=0&modestbranding=1" allow="autoplay"></iframe>
 </div>
 
 <div id="final"></div>
 
 <script>
 
-/* MUSICA */
+const music = document.getElementById("music")
 
-const music=
-
-document.getElementById(
-"music"
-)
-
-music.currentTime=
-
-Number(
-
-localStorage.getItem(
-"musicTime"
-)
-
-||0
-
-)
-
-music.volume=.35
-
-music.play()
-.catch(()=>{})
+music.currentTime = Number(localStorage.getItem("musicTime") || 0)
+music.volume = .35
+music.play().catch(()=>{})
 
 setInterval(()=>{
+  localStorage.setItem("musicTime", music.currentTime)
+}, 500)
 
-localStorage.setItem(
-
-"musicTime",
-
-music.currentTime
-
-)
-
-},500)
-
-/* FRASE SUMIR */
+setTimeout(()=>{
+  startText.style.opacity = "0"
+}, 2000)
 
 setTimeout(()=>{
 
-startText.style.opacity=
+  document.querySelectorAll(".frame").forEach(v=>{
+    v.style.opacity = ".15"
+  })
 
-"0"
+  const end = document.getElementById("final")
+  end.style.display = "flex"
 
-},2000)
+  setTimeout(()=>{ end.style.opacity = "1" }, 100)
 
-/* FINAL */
+  end.innerHTML = `
+    <div style="font-size:52px;">THIS WEBSITE</div>
+    <div style="font-size:30px;margin-top:20px;">WAS MADE FOR YOU</div>
+  `
 
-setTimeout(()=>{
+  setTimeout(()=>{
+    end.innerHTML = `
+      <div style="font-size:30px;">AS A GIFT</div>
+      <div style="font-size:22px;margin-top:20px;">FROM THE BOYS</div>
+    `
+  }, 4000)
 
-document
-.querySelectorAll(
-".frame"
-)
+  setTimeout(()=>{
+    end.innerHTML = `<div style="font-size:80px;">ENJOY</div>`
+  }, 8000)
 
-.forEach(v=>{
+  setTimeout(()=>{
+    localStorage.setItem("continueMusic", music.currentTime)
+    window.location.href = "home.html"
+  }, 12000)
 
-v.style.opacity=
-
-".15"
-
-})
-
-const end=
-
-document.getElementById(
-"final"
-)
-
-end.style.display=
-
-"flex"
-
-setTimeout(()=>{
-
-end.style.opacity=
-
-"1"
-
-},100)
-
-end.innerHTML=
-
-`
-
-<div style="
-font-size:52px;
-">
-
-THIS WEBSITE
-
-</div>
-
-<div style="
-font-size:30px;
-margin-top:20px;
-">
-
-WAS MADE FOR YOU
-
-</div>
-
-`
-
-setTimeout(()=>{
-
-end.innerHTML=
-
-`
-
-<div style="
-font-size:30px;
-">
-
-AS A GIFT
-
-</div>
-
-<div style="
-font-size:22px;
-margin-top:20px;
-">
-
-FROM THE BOYS
-
-</div>
-
-`
-
-},4000)
-
-setTimeout(()=>{
-
-end.innerHTML=
-
-`
-
-<div style="
-font-size:80px;
-">
-
-ENJOY
-
-</div>
-
-`
-
-},8000)
-
-setTimeout(()=>{
-
-localStorage.setItem(
-
-"continueMusic",
-
-music.currentTime
-
-)
-
-window.location.href=
-
-"home.html"
-
-},12000)
-
-},17000)
+}, 17000)
 
 </script>
 
 </body>
-
 </html>
