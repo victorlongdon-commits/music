@@ -52,7 +52,6 @@ font-size:14px;
 transition:.2s;
 }
 
-.navBtnPrimary{ background:#7c5cff; color:white; }
 .navBtnSecondary{ background:rgba(255,255,255,.1); color:white; }
 .navBtnSecondary:hover{ background:rgba(255,255,255,.2); }
 .navBtnFav{ background:rgba(255,80,80,.15); color:#ff6b6b; border:1px solid rgba(255,80,80,.3); }
@@ -70,7 +69,6 @@ justify-content:space-between;
 
 .sectionHeader h2{ font-size:22px; opacity:.9; }
 
-/* ALBUM GRID */
 .albumGrid{
 display:grid;
 grid-template-columns:repeat(auto-fill, minmax(180px, 1fr));
@@ -152,7 +150,6 @@ height:fit-content;
 .addAlbumCard:hover{ opacity:1; border-color:#7c5cff; }
 .addAlbumCard span{ font-size:32px; }
 
-/* FOTOCARDS GRID */
 .cardsGrid{
 display:grid;
 grid-template-columns:repeat(auto-fill, minmax(160px, 1fr));
@@ -176,7 +173,7 @@ border:1px solid rgba(255,255,255,.08);
 
 .photoCard img{
 width:100%;
-aspect-ratio:2/3;
+height:240px;
 object-fit:cover;
 display:block;
 }
@@ -227,11 +224,10 @@ z-index:10;
 
 .adminMode .photoCardDel{ display:flex; }
 
-/* Botão adicionar foto — mesma altura que o card via aspect-ratio */
 .addPhotoCard{
 border-radius:12px;
 border:2px dashed rgba(255,255,255,.2);
-aspect-ratio:2/3;
+height:240px;
 display:flex;
 flex-direction:column;
 align-items:center;
@@ -246,7 +242,6 @@ gap:8px;
 .addPhotoCard:hover{ opacity:1; border-color:#7c5cff; }
 .addPhotoCard span{ font-size:28px; }
 
-/* LIGHTBOX */
 #lightbox{
 position:fixed;
 inset:0;
@@ -300,7 +295,6 @@ user-select:none;
 #lbPrev{ left:20px; }
 #lbNext{ right:20px; }
 
-/* MODAIS */
 .modal{
 position:fixed; inset:0;
 background:rgba(0,0,0,.85);
@@ -432,7 +426,6 @@ opacity:.4;
   <div class="lightboxNav" id="lbNext" onclick="lbNavigate(1)">›</div>
 </div>
 
-<!-- MODAL: NOVO ÁLBUM -->
 <div class="modal" id="modalAlbum">
   <div class="modalBox">
     <h2>➕ Novo Álbum</h2>
@@ -454,7 +447,6 @@ opacity:.4;
   </div>
 </div>
 
-<!-- MODAL: UPLOAD FOTOCARDS -->
 <div class="modal" id="modalCards">
   <div class="modalBox">
     <h2>➕ Adicionar Fotocards</h2>
@@ -476,15 +468,7 @@ opacity:.4;
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"
-import {
-getDatabase,
-ref,
-onValue,
-get,
-push,
-remove,
-off
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js"
+import { getDatabase, ref, onValue, get, push, remove, off } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js"
 
 const firebaseConfig = {
   apiKey: "AIzaSyDFShfAw6VJ51hjka27gUebd9fna6o4yGw",
@@ -511,23 +495,18 @@ let pendingFiles = []
 let albumCoverFile = null
 let isAdmin = false
 let favorites = JSON.parse(localStorage.getItem("fcFavorites")) || []
-
-// Guarda referência do listener ativo de cards para cancelar antes de criar outro
 let cardsListenerRef = null
+let cardsListenerUnsubscribe = null
 
+// Carrega álbuns em tempo real
 onValue(ref(db, "fcAlbums"), snap => {
   albums = []
   snap.forEach(c => albums.push({ id:c.key, ...c.val() }))
   if(document.getElementById("viewAlbums").classList.contains("active")) renderAlbums()
 })
 
-// VIEWS
 window.showAlbums = () => {
-  // Cancela listener de cards ao sair da view
-  if(cardsListenerRef) {
-    off(cardsListenerRef)
-    cardsListenerRef = null
-  }
+  cancelCardsListener()
   setView("viewAlbums")
   document.getElementById("navTitle").innerText = "Fotocards"
   renderAlbums()
@@ -539,48 +518,30 @@ window.showFavs = () => {
   renderFavs()
 }
 
-async function loadCards(albumId){
-
-const snap =
-await get(
-ref(
-db,
-`fcCards/${albumId}`
-)
-)
-
-currentCards=[]
-
-snap.forEach(c=>
-currentCards.push({
-id:c.key,
-...c.val()
-})
-)
-
-renderCards()
-
+function cancelCardsListener() {
+  if(cardsListenerUnsubscribe) {
+    cardsListenerUnsubscribe()
+    cardsListenerUnsubscribe = null
+  }
+  cardsListenerRef = null
 }
 
-function showCards(albumId){
-  // Cancela listener anterior antes de criar um novo
-  if(cardsListenerRef) {
-    off(cardsListenerRef)
-    cardsListenerRef = null
-  }
+// Carrega cards com get() (leitura única) — sem listener em tempo real durante upload
+async function loadCards(albumId) {
+  const snap = await get(ref(db, `fcCards/${albumId}`))
+  currentCards = []
+  snap.forEach(c => currentCards.push({ id:c.key, ...c.val() }))
+  renderCards()
+}
 
+function showCards(albumId) {
+  cancelCardsListener()
   currentAlbumId = albumId
   const album = albums.find(a => a.id === albumId)
   document.getElementById("albumTitle").innerText = album?.name || ""
   document.getElementById("navTitle").innerText = album?.name || ""
   setView("viewCards")
-
-  cardsListenerRef = ref(db, `fcCards/${albumId}`)
-  onValue(cardsListenerRef, snap => {
-    currentCards = []
-    snap.forEach(c => currentCards.push({ id:c.key, ...c.val() }))
-    renderCards()
-  })
+  loadCards(albumId)
 }
 
 function setView(id){
@@ -790,114 +751,61 @@ setupDrop("cardsDropZone", "cardsInput", files => {
   document.getElementById("cardsInput").value = ""
 })
 
+window.submitAlbum = async () => {
+  const name = document.getElementById("albumName").value.trim()
+  const artist = document.getElementById("albumArtist").value.trim()
+  if(!name || !albumCoverFile){ alert("Preencha o nome e a capa!"); return }
+
+  const fill = document.getElementById("albumFill")
+  const status = document.getElementById("albumStatus")
+  document.getElementById("albumProgress").style.display = "block"
+  status.innerText = "Enviando capa..."
+
+  try {
+    const coverUrl = await uploadToCloudinary(albumCoverFile, p => fill.style.width = p + "%")
+    await push(ref(db, "fcAlbums"), { name, artist: artist||"BTS", cover: coverUrl })
+    status.innerText = "✅ Álbum criado!"
+    setTimeout(() => { closeModal("modalAlbum"); albumCoverFile = null }, 1000)
+  } catch(e) {
+    status.innerText = "❌ Erro. Tente novamente."
+  }
+}
+
 window.submitCards = async () => {
+  if(!pendingFiles.length){ alert("Selecione pelo menos uma imagem!"); return }
+  if(!currentAlbumId){ alert("Erro: nenhum álbum selecionado."); return }
 
-if(!pendingFiles.length){
-alert("Selecione pelo menos uma imagem!")
-return
-}
+  const albumId = currentAlbumId // salva o id antes de qualquer coisa async
+  const fill = document.getElementById("cardsFill")
+  const status = document.getElementById("cardsStatus")
+  document.getElementById("cardsProgress").style.display = "block"
 
-if(!currentAlbumId){
-alert("Erro: nenhum álbum selecionado.")
-return
-}
-
-const albumId = currentAlbumId
-
-const fill =
-document.getElementById("cardsFill")
-
-const status =
-document.getElementById("cardsStatus")
-
-document
-.getElementById("cardsProgress")
-.style.display="block"
-
-try{
-
-for(
-let i=0;
-i<pendingFiles.length;
-i++
-){
-
-status.innerText=
-`Enviando ${i+1} de ${pendingFiles.length}...`
-
-const url=
-await uploadToCloudinary(
-pendingFiles[i],
-p=>{
-
-fill.style.width=
-(
-(i+p/100)
-/
-pendingFiles.length
-*
-100
-)+"%"
-
-}
-)
-
-await push(
-ref(
-db,
-`fcCards/${albumId}`
-),
-{
-url
-}
-)
-
-}
-
-fill.style.width="100%"
-
-status.innerText=
-`✅ ${pendingFiles.length} adicionados`
-
-pendingFiles=[]
-
-document
-.getElementById("uploadList")
-.innerHTML=""
-
-document
-.getElementById("cardsInput")
-.value=""
-
-setTimeout(
-async()=>{
-
-closeModal(
-"modalCards"
-)
-
-await loadCards(
-albumId
-)
-
-},
-700
-)
-
-}catch(e){
-
-console.log(e)
-
-status.innerText=
-"❌ Erro"
-
-}
-
+  try {
+    for(let i = 0; i < pendingFiles.length; i++){
+      status.innerText = `Enviando ${i+1} de ${pendingFiles.length}...`
+      const url = await uploadToCloudinary(pendingFiles[i], p => {
+        fill.style.width = ((i + p/100) / pendingFiles.length * 100) + "%"
+      })
+      await push(ref(db, `fcCards/${albumId}`), { url })
+    }
+    fill.style.width = "100%"
+    status.innerText = `✅ ${pendingFiles.length} fotocards adicionados!`
+    pendingFiles = []
+    // Aguarda 1s e recarrega os cards com get() para pegar tudo de uma vez
+    setTimeout(async () => {
+      closeModal("modalCards")
+      await loadCards(albumId)
+    }, 1000)
+  } catch(e) {
+    status.innerText = "❌ Erro no upload."
+    console.error(e)
+  }
 }
 
 window.deleteCard = async (id) => {
   if(!confirm("Apagar este fotocard?")) return
   await remove(ref(db, `fcCards/${currentAlbumId}/${id}`))
+  await loadCards(currentAlbumId)
 }
 
 window.toggleAdmin = () => {
