@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<meta charset="UTF-8">
+
+<title>Welcome</title>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+}
+
+body{
+
+height:100vh;
+
+display:flex;
+
+justify-content:center;
+
+align-items:center;
+
+background:
+linear-gradient(
+180deg,
+#06060a,
+#170b2c
+);
+
+font-family:Arial;
+
+overflow:hidden;
+
+color:white;
+
+}
+
+.box{
+
+text-align:center;
+
+}
+
+h1{
+
+font-size:62px;
+
+margin-bottom:20px;
+
+}
+
+p{
+
+font-size:24px;
+
+opacity:.8;
+
+}
+
+button{
+
+margin-top:45px;
+
+padding:18px 70px;
+
+font-size:24px;
+
+border:none;
+
+border-radius:999px;
+
+cursor:pointer;
+
+color:white;
+
+background:
+linear-gradient(
+90deg,
+#6d42ff,
+#9a7aff
+);
+
+transition:.3s;
+
+}
+
+button:hover{
+
+transform:scale(1.05);
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="box">
+
+<h1 id="welcome">
+
+Hwanyeonghamnida.
+
+</h1>
+
+<p>
+
+I nollaun segyereul mannal junbiga doeeotnayo?
+
+</p>
+
+<button onclick="enter()">
+
+SIM
+
+</button>
+
+</div>
+
+<script>
+
+/* nome do usuário */
+
+let user = localStorage.getItem("userName")
+
+if(user){
+
+document.getElementById("welcome").innerText =
+`Hwanyeonghamnida, ${user}.`
+
+}
+
+/* ENTRAR NO SITE */
+
+function enter(){
+
+/* libera música global */
+localStorage.setItem("canPlayMusic", "true")
+
+/* zera tempo inicial (opcional mas recomendado) */
+localStorage.setItem("continueMusic", "0")
+
+/* vai pra intro */
+window.location.href = "intro.html"
+
+}
+
+</script>
+
+</body>
+
+</html>
