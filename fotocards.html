@@ -791,17 +791,19 @@ alert("Erro: nenhum álbum selecionado.")
 return
 }
 
-const albumId = currentAlbumId
+const albumId=currentAlbumId
 
-const fill =
+const fill=
 document.getElementById("cardsFill")
 
-const status =
+const status=
 document.getElementById("cardsStatus")
 
 document
 .getElementById("cardsProgress")
 .style.display="block"
+
+fill.style.width="0%"
 
 try{
 
@@ -811,16 +813,20 @@ i<pendingFiles.length;
 i++
 ){
 
-status.innerText =
+status.innerText=
 `Enviando ${i+1} de ${pendingFiles.length}...`
 
-const url =
+const url=
 await uploadToCloudinary(
 pendingFiles[i],
 p=>{
 
-fill.style.width = (
-(i+p/100)
+fill.style.width=
+(
+(
+i+
+p/100
+)
 /
 pendingFiles.length
 *
@@ -842,7 +848,11 @@ url
 
 }
 
-/* limpa upload */
+fill.style.width="100%"
+status.innerText=
+`✅ ${pendingFiles.length} fotocards adicionados!`
+
+/* limpa */
 
 pendingFiles=[]
 
@@ -854,27 +864,28 @@ document
 .getElementById("cardsInput")
 .value=""
 
-fill.style.width="100%"
+/* fecha */
 
-status.innerText=
-"✅ Fotocards adicionados!"
+setTimeout(()=>{
 
 closeModal(
 "modalCards"
 )
 
-/* recarrega album */
+},700)
 
-await loadCards(
+/* recarrega usando função que existe */
+
+showCards(
 albumId
 )
 
 }catch(e){
 
-status.innerText=
-"❌ Erro no upload."
+console.log(e)
 
-console.error(e)
+status.innerText=
+"❌ Erro no upload"
 
 }
 
