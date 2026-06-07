@@ -559,7 +559,7 @@ function showCards(albumId){
     currentCards = []
     snap.forEach(c => currentCards.push({ id:c.key, ...c.val() }))
     renderCards()
-  }, { onlyOnce:true })
+  })
 }
 
 function setView(id){
