@@ -1,3 +1,4 @@
+cat > /mnt/user-data/outputs/fotocards.html << 'ENDOFFILE'
 <!DOCTYPE html>
 <html>
 <head>
@@ -14,7 +15,6 @@ body{
   min-height:100vh;
 }
 
-/* NAV */
 nav{
   height:64px;
   display:flex;
@@ -27,69 +27,39 @@ nav{
   background:#08080f;
   z-index:100;
 }
-
-.nav-left{
-  display:flex;
-  align-items:center;
-  gap:14px;
-}
-
-.back-btn{
-  cursor:pointer;
-  font-size:20px;
-  opacity:.5;
-  transition:.2s;
-  line-height:1;
-}
+.nav-left{ display:flex; align-items:center; gap:14px; }
+.back-btn{ cursor:pointer; font-size:20px; opacity:.5; transition:.2s; }
 .back-btn:hover{ opacity:1; }
-
-.nav-title{
-  font-size:17px;
-  font-weight:bold;
-  letter-spacing:1px;
-}
-
-.nav-right{
-  display:flex;
-  gap:10px;
-  align-items:center;
-}
+.nav-title{ font-size:17px; font-weight:bold; }
+.nav-right{ display:flex; gap:10px; align-items:center; }
 
 .pill{
-  padding:9px 18px;
-  border-radius:99px;
-  border:none;
-  cursor:pointer;
-  font-size:13px;
-  font-weight:bold;
-  letter-spacing:.5px;
-  transition:.2s;
+  padding:9px 18px; border-radius:99px; border:none;
+  cursor:pointer; font-size:13px; font-weight:bold; transition:.2s;
 }
 .pill:hover{ transform:scale(1.04); }
 .pill-fav{ background:#7c1f2e; color:white; }
 .pill-admin{ background:#1a1a4a; color:white; }
 .pill-admin.active{ background:#2d2d8a; }
 
-/* PAGE */
+/* SAVE ORDER BTN — aparece só quando admin está arrastando */
+#saveOrderBtn{
+  display:none;
+  padding:9px 20px; border-radius:99px; border:none;
+  background:#7c5cff; color:white; font-size:13px; font-weight:bold;
+  cursor:pointer; transition:.2s; animation: pulse 1.5s infinite;
+}
+#saveOrderBtn:hover{ transform:scale(1.05); background:#9b7fff; }
+@keyframes pulse{
+  0%,100%{ box-shadow:0 0 0 0 rgba(124,92,255,.4); }
+  50%{ box-shadow:0 0 0 8px rgba(124,92,255,0); }
+}
+
 .page{ padding:32px 28px; }
+.page-header{ margin-bottom:28px; }
+.page-header h2{ font-size:22px; font-weight:bold; }
 
-.page-header{
-  margin-bottom:28px;
-}
-
-.page-header h2{
-  font-size:22px;
-  font-weight:bold;
-}
-
-.page-header .sub{
-  font-size:13px;
-  opacity:.35;
-  margin-top:4px;
-  letter-spacing:1px;
-}
-
-/* ÁLBUNS GRID */
+/* ÁLBUNS */
 .albums-grid{
   display:grid;
   grid-template-columns:repeat(auto-fill, 190px);
@@ -97,13 +67,9 @@ nav{
 }
 
 .album-card{
-  width:190px;
-  border-radius:16px;
-  overflow:hidden;
-  cursor:pointer;
-  position:relative;
-  background:#111120;
-  border:1px solid rgba(255,255,255,.06);
+  width:190px; border-radius:16px; overflow:hidden;
+  cursor:pointer; position:relative;
+  background:#111120; border:1px solid rgba(255,255,255,.06);
   transition:.3s;
 }
 .album-card:hover{
@@ -111,97 +77,44 @@ nav{
   border-color:rgba(255,255,255,.16);
   box-shadow:0 16px 50px rgba(0,0,0,.5);
 }
-
-.album-thumb{
-  width:190px;
-  height:190px;
-  object-fit:cover;
-  display:block;
-}
-
+.album-thumb{ width:190px; height:190px; object-fit:cover; display:block; }
 .album-thumb-placeholder{
-  width:190px;
-  height:190px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:52px;
-  background:rgba(255,255,255,.04);
+  width:190px; height:190px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:52px; background:rgba(255,255,255,.04);
 }
-
-.album-info{
-  padding:12px 14px 14px;
-}
-
-.album-name{
-  font-size:14px;
-  font-weight:bold;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
-
-.album-sub{
-  font-size:12px;
-  opacity:.35;
-  margin-top:3px;
-}
-
+.album-info{ padding:12px 14px 14px; }
+.album-name{ font-size:14px; font-weight:bold; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.album-sub{ font-size:12px; opacity:.35; margin-top:3px; }
 .album-del{
-  position:absolute;
-  top:8px; right:8px;
-  width:26px; height:26px;
-  border-radius:50%;
-  background:rgba(0,0,0,.7);
-  border:1px solid rgba(255,255,255,.15);
-  color:white;
-  font-size:14px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  cursor:pointer;
-  opacity:0;
-  transition:.2s;
+  position:absolute; top:8px; right:8px;
+  width:26px; height:26px; border-radius:50%;
+  background:rgba(0,0,0,.7); border:1px solid rgba(255,255,255,.15);
+  color:white; font-size:14px;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; opacity:0; transition:.2s;
 }
 .album-card:hover .album-del{ opacity:1; }
 .album-del:hover{ background:rgba(200,0,0,.6); }
 
-/* ADD CARD (álbum ou foto) */
+/* ADD CARD */
 .add-card{
-  width:190px;
-  border-radius:16px;
-  border:2px dashed rgba(255,255,255,.12);
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  cursor:pointer;
-  color:rgba(255,255,255,.3);
-  font-size:13px;
-  gap:10px;
-  transition:.3s;
+  border-radius:16px; border:2px dashed rgba(255,255,255,.12);
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  cursor:pointer; color:rgba(255,255,255,.3);
+  font-size:13px; gap:10px; transition:.3s;
 }
 .add-card:hover{
   border-color:rgba(255,255,255,.3);
   color:rgba(255,255,255,.6);
   background:rgba(255,255,255,.03);
 }
-.add-card .plus{
-  font-size:32px;
-  line-height:1;
-}
-/* height para álbum igual ao card */
+.add-card .plus{ font-size:32px; line-height:1; }
 .albums-grid .add-card{ height:242px; width:190px; }
-/* height para fotocard igual ao card */
 .cards-grid .add-card{ height:249px; width:150px; }
-.cards-section-header{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  margin-bottom:20px;
-}
-.cards-count{ font-size:13px; opacity:.3; letter-spacing:1px; }
 
+/* FOTOCARDS */
 .cards-grid{
   display:grid;
   grid-template-columns:repeat(auto-fill, 150px);
@@ -209,223 +122,137 @@ nav{
 }
 
 .fotocard{
-  width:150px;
-  border-radius:14px;
-  overflow:hidden;
-  position:relative;
-  cursor:pointer;
+  width:150px; border-radius:14px; overflow:hidden;
+  position:relative; cursor:pointer;
   border:1px solid rgba(255,255,255,.06);
-  transition:.3s;
+  transition:transform .25s, box-shadow .25s, border-color .25s, opacity .2s;
   background:#111120;
+  user-select:none;
 }
-.fotocard:hover{
+.fotocard:not(.dragging):hover{
   transform:translateY(-5px) scale(1.03);
   border-color:rgba(255,255,255,.2);
   box-shadow:0 14px 40px rgba(0,0,0,.5);
 }
-
-.fotocard img{
-  width:150px;
-  height:225px;
-  object-fit:cover;
-  display:block;
-}
-
+.fotocard img{ width:150px; height:225px; object-fit:cover; display:block; pointer-events:none; }
 .fotocard-label{
-  padding:8px 10px;
-  font-size:11px;
-  opacity:.5;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
+  padding:8px 10px; font-size:11px; opacity:.5;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
-
 .fotocard-del{
-  position:absolute;
-  top:6px; right:6px;
-  width:24px; height:24px;
-  border-radius:50%;
-  background:rgba(0,0,0,.75);
-  border:1px solid rgba(255,255,255,.15);
-  color:white;
-  font-size:13px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  cursor:pointer;
-  opacity:0;
-  transition:.2s;
+  position:absolute; top:6px; right:6px;
+  width:24px; height:24px; border-radius:50%;
+  background:rgba(0,0,0,.75); border:1px solid rgba(255,255,255,.15);
+  color:white; font-size:13px;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; opacity:0; transition:.2s;
 }
 .fotocard:hover .fotocard-del{ opacity:1; }
 .fotocard-del:hover{ background:rgba(200,0,0,.6); }
 
+/* DRAG STATES */
+.fotocard.dragging{
+  opacity:.35;
+  transform:scale(.96);
+  cursor:grabbing;
+}
+.fotocard[draggable="true"]{ cursor:grab; }
+.fotocard.drag-over{
+  border-color:#7c5cff;
+  box-shadow:0 0 0 2px #7c5cff;
+}
+
+/* drag hint bar */
+.drag-hint{
+  font-size:12px; opacity:.3; letter-spacing:1px;
+  margin-bottom:14px; display:none;
+}
+
+/* count badge */
+.cards-count{ font-size:13px; opacity:.3; letter-spacing:1px; margin-left:4px; }
+
 /* LIGHTBOX */
 .lightbox{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.94);
-  z-index:9999;
-  display:none;
-  justify-content:center;
-  align-items:center;
+  position:fixed; inset:0; background:rgba(0,0,0,.94);
+  z-index:9999; display:none;
+  justify-content:center; align-items:center;
 }
 .lightbox.open{ display:flex; }
-
-.lb-img{
-  max-height:88vh;
-  max-width:85vw;
-  border-radius:14px;
-  object-fit:contain;
-}
-
+.lb-img{ max-height:88vh; max-width:85vw; border-radius:14px; object-fit:contain; }
 .lb-close{
-  position:absolute;
-  top:18px; right:22px;
-  font-size:26px;
-  cursor:pointer;
-  opacity:.4;
-  transition:.2s;
+  position:absolute; top:18px; right:22px;
+  font-size:26px; cursor:pointer; opacity:.4; transition:.2s;
 }
 .lb-close:hover{ opacity:1; }
-
 .lb-arrow{
-  position:absolute;
-  top:50%;
-  transform:translateY(-50%);
-  font-size:48px;
-  cursor:pointer;
-  opacity:.3;
-  user-select:none;
-  transition:.2s;
-  padding:10px;
+  position:absolute; top:50%; transform:translateY(-50%);
+  font-size:48px; cursor:pointer; opacity:.3;
+  user-select:none; transition:.2s; padding:10px;
 }
 .lb-arrow:hover{ opacity:.9; }
 .lb-prev{ left:16px; }
 .lb-next{ right:16px; }
-
 .lb-info{
-  position:absolute;
-  bottom:20px;
-  left:50%;
-  transform:translateX(-50%);
-  font-size:12px;
-  opacity:.35;
-  letter-spacing:2px;
-  white-space:nowrap;
+  position:absolute; bottom:20px; left:50%; transform:translateX(-50%);
+  font-size:12px; opacity:.35; letter-spacing:2px; white-space:nowrap;
 }
 
 /* MODAL */
 .modal{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.85);
-  z-index:99999;
-  display:none;
-  justify-content:center;
-  align-items:center;
+  position:fixed; inset:0; background:rgba(0,0,0,.85);
+  display:none; z-index:99999;
+  justify-content:center; align-items:center;
 }
 .modal.open{ display:flex; }
-
 .modal-box{
-  background:#0f0f1e;
-  border:1px solid rgba(255,255,255,.08);
-  border-radius:22px;
-  padding:30px;
-  width:440px;
-  max-height:92vh;
-  overflow-y:auto;
+  background:#0f0f1e; border:1px solid rgba(255,255,255,.08);
+  border-radius:22px; padding:30px;
+  width:440px; max-height:92vh; overflow-y:auto;
 }
 .modal-box h2{ font-size:17px; margin-bottom:20px; }
-
 .field{
-  width:100%;
-  padding:12px 15px;
-  border-radius:10px;
+  width:100%; padding:12px 15px; border-radius:10px;
   border:1px solid rgba(255,255,255,.08);
-  background:rgba(255,255,255,.05);
-  color:white;
-  font-size:14px;
-  margin-bottom:12px;
-  outline:none;
-  transition:.2s;
+  background:rgba(255,255,255,.05); color:white;
+  font-size:14px; margin-bottom:12px; outline:none; transition:.2s;
 }
 .field:focus{ border-color:rgba(124,92,255,.5); }
-
 .drop{
-  border:2px dashed rgba(255,255,255,.12);
-  border-radius:12px;
-  padding:26px;
-  text-align:center;
-  cursor:pointer;
-  transition:.3s;
-  margin-bottom:12px;
+  border:2px dashed rgba(255,255,255,.12); border-radius:12px;
+  padding:26px; text-align:center; cursor:pointer;
+  transition:.3s; margin-bottom:12px;
 }
 .drop:hover{ border-color:#7c5cff; background:rgba(124,92,255,.05); }
 .drop.over{ border-color:#7c5cff; background:rgba(124,92,255,.1); }
 .drop p{ font-size:12px; opacity:.35; margin-top:6px; }
-
-.drop-preview{
-  width:70px; height:70px;
-  border-radius:8px;
-  object-fit:cover;
-  margin-top:10px;
-  display:none;
-}
-
+.drop-preview{ width:70px; height:70px; border-radius:8px; object-fit:cover; margin-top:10px; display:none; }
 .sel{
-  width:100%;
-  padding:12px 15px;
-  border-radius:10px;
+  width:100%; padding:12px 15px; border-radius:10px;
   border:1px solid rgba(255,255,255,.08);
-  background:rgba(255,255,255,.05);
-  color:white;
-  font-size:14px;
-  margin-bottom:12px;
-  outline:none;
-  appearance:none;
-  cursor:pointer;
+  background:rgba(255,255,255,.05); color:white;
+  font-size:14px; margin-bottom:12px; outline:none; appearance:none; cursor:pointer;
 }
 .sel option{ background:#0f0f1e; }
-
 .btn-row{ display:flex; gap:10px; margin-top:12px; }
 .btn-row button{
-  flex:1;
-  padding:13px;
-  border:none;
-  border-radius:10px;
-  font-size:14px;
-  cursor:pointer;
-  transition:.2s;
+  flex:1; padding:13px; border:none; border-radius:10px;
+  font-size:14px; cursor:pointer; transition:.2s;
 }
 .btn-row button:hover{ transform:scale(1.03); }
 .b-save{ background:#7c5cff; color:white; }
 .b-cancel{ background:rgba(255,255,255,.07); color:white; }
-
 .prog-bar{
-  width:100%;
-  height:3px;
-  background:rgba(255,255,255,.07);
-  border-radius:99px;
-  overflow:hidden;
-  margin-top:8px;
-  display:none;
+  width:100%; height:3px; background:rgba(255,255,255,.07);
+  border-radius:99px; overflow:hidden; margin-top:8px; display:none;
 }
 .prog-fill{ height:100%; background:#7c5cff; width:0%; transition:.3s; }
 .status{ font-size:12px; opacity:.4; margin-top:6px; min-height:16px; }
 
 /* LOADING */
 #ls{
-  position:fixed;
-  inset:0;
-  background:#08080f;
-  z-index:99999;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  font-size:16px;
-  letter-spacing:6px;
-  opacity:1;
-  transition:1s;
+  position:fixed; inset:0; background:#08080f; z-index:99999;
+  display:flex; justify-content:center; align-items:center;
+  font-size:16px; letter-spacing:6px; transition:1s;
 }
 
 </style>
@@ -436,23 +263,22 @@ nav{
 
 <nav>
   <div class="nav-left">
-    <span class="back-btn" id="backBtn" onclick="goBack()">←</span>
+    <span class="back-btn" onclick="goBack()">←</span>
     <span class="nav-title" id="navTitle">Fotocards</span>
   </div>
   <div class="nav-right">
+    <button id="saveOrderBtn" onclick="saveOrder()">💾 Salvar ordem</button>
     <button class="pill pill-fav">♥ Favoritos</button>
     <button class="pill pill-admin" id="adminPill" onclick="toggleAdmin()">Admin</button>
   </div>
 </nav>
 
 <div class="page">
-  <div class="page-header" id="pageHeader">
-    <h2>Álbuns &amp; Eras</h2>
-  </div>
+  <div class="page-header" id="pageHeader"><h2>Álbuns &amp; Eras</h2></div>
+  <div class="drag-hint" id="dragHint">↔ Arraste para reordenar · clique em 💾 para salvar</div>
   <div id="mainContent"></div>
 </div>
 
-<!-- LIGHTBOX -->
 <div class="lightbox" id="lightbox" onclick="lbClickBg(event)">
   <span class="lb-close" onclick="closeLb()">✕</span>
   <span class="lb-arrow lb-prev" onclick="lbGo(-1)">‹</span>
@@ -507,7 +333,7 @@ nav{
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js"
-import { getDatabase, ref, onValue, push, remove } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-database.js"
+import { getDatabase, ref, onValue, push, remove, update, get } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-database.js"
 
 const firebaseConfig = {
   apiKey: "AIzaSyDFShfAw6VJ51hjka27gUebd9fna6o4yGw",
@@ -520,7 +346,7 @@ const firebaseConfig = {
 }
 
 const app = initializeApp(firebaseConfig)
-const db = getDatabase(app)
+const db  = getDatabase(app)
 const albumsRef = ref(db, "albums")
 const cardsRef  = ref(db, "fotocards")
 
@@ -534,7 +360,10 @@ let isAdmin   = localStorage.getItem("isAdmin") === "true"
 let aFile = null, cFile = null
 let lbList = [], lbIdx = 0
 
-// admin pill state
+// drag state
+let dragSrc = null
+let orderChanged = false
+
 function refreshAdminPill(){
   const p = document.getElementById("adminPill")
   if(isAdmin){ p.innerText = "✓ Admin"; p.classList.add("active") }
@@ -542,11 +371,12 @@ function refreshAdminPill(){
 }
 refreshAdminPill()
 
-// firebase listeners
+// Firebase
 onValue(albumsRef, snap => {
   albums = []
   snap.forEach(c => albums.push({ id:c.key, ...c.val() }))
-  render()
+  // só re-renderiza se não estiver no meio de um drag
+  if(!dragSrc) render()
 })
 
 onValue(cardsRef, snap => {
@@ -554,7 +384,7 @@ onValue(cardsRef, snap => {
   snap.forEach(c => fotocards.push({ id:c.key, ...c.val() }))
   document.getElementById("ls").style.opacity = "0"
   setTimeout(() => document.getElementById("ls").style.display = "none", 1000)
-  render()
+  if(!dragSrc) render()
 })
 
 function render(){
@@ -566,9 +396,10 @@ function render(){
 function renderAlbums(){
   document.getElementById("navTitle").innerText = "Fotocards"
   document.getElementById("pageHeader").innerHTML = "<h2>Álbuns &amp; Eras</h2>"
+  document.getElementById("dragHint").style.display = "none"
+  document.getElementById("saveOrderBtn").style.display = "none"
 
   let html = '<div class="albums-grid">'
-
   albums.forEach(a => {
     const count = fotocards.filter(c => c.albumId === a.id).length
     const thumb = a.cover
@@ -582,34 +413,28 @@ function renderAlbums(){
         ${thumb}${del}
         <div class="album-info">
           <div class="album-name">${a.name}</div>
-          <div class="album-sub">${a.artist || "BTS"}${a.year ? " · " + a.year : ""}</div>
+          <div class="album-sub">${a.artist||"BTS"}${a.year?" · "+a.year:""} · ${count} cards</div>
         </div>
       </div>`
   })
-
   if(isAdmin){
-    html += `
-      <div class="add-card" onclick="openAddAlbum()">
-        <span class="plus">+</span>
-        <span>Novo Álbum</span>
-      </div>`
+    html += `<div class="add-card" onclick="openAddAlbum()"><span class="plus">+</span><span>Novo Álbum</span></div>`
   }
-
   html += "</div>"
   document.getElementById("mainContent").innerHTML = html
 }
 
-window.openAlbum = function(id){
-  curAlbum = id
-  renderCards()
-}
+window.openAlbum = id => { curAlbum = id; orderChanged = false; renderCards() }
 
 /* ---- FOTOCARDS ---- */
 function renderCards(){
   const album = albums.find(a => a.id === curAlbum)
   if(!album){ curAlbum = null; renderAlbums(); return }
 
-  const cards = fotocards.filter(c => c.albumId === curAlbum)
+  // ordena por campo "order" se existir
+  let cards = fotocards
+    .filter(c => c.albumId === curAlbum)
+    .sort((a,b) => (a.order ?? 9999) - (b.order ?? 9999))
   lbList = cards
 
   document.getElementById("navTitle").innerText = album.name
@@ -620,40 +445,150 @@ function renderCards(){
       <span class="cards-count">${cards.length} fotocards</span>
     </div>`
 
-  let html = '<div class="cards-grid">'
+  if(isAdmin && cards.length > 1){
+    document.getElementById("dragHint").style.display = "block"
+  } else {
+    document.getElementById("dragHint").style.display = "none"
+  }
+
+  const grid = document.createElement("div")
+  grid.className = "cards-grid"
+  grid.id = "cardsGrid"
 
   cards.forEach((c, i) => {
-    const del = isAdmin
-      ? `<div class="fotocard-del" onclick="delCard(event,'${c.id}')">✕</div>`
-      : ""
-    html += `
-      <div class="fotocard" onclick="openLb(${i})">
-        <img src="${c.img}" onerror="this.src='https://via.placeholder.com/150x225'">
-        ${del}
-        ${c.name ? `<div class="fotocard-label">${c.name}</div>` : ""}
-      </div>`
+    const card = document.createElement("div")
+    card.className = "fotocard"
+    card.dataset.id = c.id
+    card.dataset.idx = i
+
+    if(isAdmin){
+      card.draggable = true
+      card.addEventListener("dragstart", onDragStart)
+      card.addEventListener("dragend",   onDragEnd)
+      card.addEventListener("dragover",  onDragOver)
+      card.addEventListener("dragleave", onDragLeave)
+      card.addEventListener("drop",      onDrop)
+    }
+
+    card.innerHTML = `
+      <img src="${c.img}" onerror="this.src='https://via.placeholder.com/150x225'">
+      ${isAdmin ? `<div class="fotocard-del" onclick="delCard(event,'${c.id}')">✕</div>` : ""}
+      ${c.name ? `<div class="fotocard-label">${c.name}</div>` : ""}
+    `
+
+    // clique abre lightbox só se não estiver arrastando
+    card.addEventListener("click", () => {
+      if(!orderChanged || !dragSrc) openLb(i)
+    })
+
+    grid.appendChild(card)
   })
 
   if(isAdmin){
-    html += `
-      <div class="add-card" onclick="openAddCard()">
-        <span class="plus">+</span>
-        <span>Adicionar fotos</span>
-      </div>`
+    const addBtn = document.createElement("div")
+    addBtn.className = "add-card"
+    addBtn.innerHTML = `<span class="plus">+</span><span>Adicionar fotos</span>`
+    addBtn.onclick = openAddCard
+    grid.appendChild(addBtn)
   }
 
-  html += "</div>"
-  document.getElementById("mainContent").innerHTML = html
+  document.getElementById("mainContent").innerHTML = ""
+  document.getElementById("mainContent").appendChild(grid)
+}
+
+/* ---- DRAG AND DROP ---- */
+function onDragStart(e){
+  dragSrc = this
+  this.classList.add("dragging")
+  e.dataTransfer.effectAllowed = "move"
+  e.dataTransfer.setData("text/plain", this.dataset.id)
+}
+
+function onDragEnd(){
+  dragSrc = null
+  document.querySelectorAll(".fotocard").forEach(c => {
+    c.classList.remove("dragging","drag-over")
+  })
+}
+
+function onDragOver(e){
+  e.preventDefault()
+  e.dataTransfer.dropEffect = "move"
+  if(this !== dragSrc){
+    this.classList.add("drag-over")
+  }
+}
+
+function onDragLeave(){
+  this.classList.remove("drag-over")
+}
+
+function onDrop(e){
+  e.preventDefault()
+  e.stopPropagation()
+  this.classList.remove("drag-over")
+  if(!dragSrc || this === dragSrc) return
+
+  const grid = document.getElementById("cardsGrid")
+  const cards = [...grid.querySelectorAll(".fotocard")]
+  const srcIdx  = cards.indexOf(dragSrc)
+  const destIdx = cards.indexOf(this)
+
+  // reinsere no DOM na posição certa
+  if(srcIdx < destIdx){
+    grid.insertBefore(dragSrc, this.nextSibling)
+  } else {
+    grid.insertBefore(dragSrc, this)
+  }
+
+  // marca que houve mudança
+  orderChanged = true
+  document.getElementById("saveOrderBtn").style.display = "block"
+}
+
+/* ---- SALVAR ORDEM ---- */
+window.saveOrder = async function(){
+  const grid = document.getElementById("cardsGrid")
+  if(!grid) return
+  const cards = [...grid.querySelectorAll(".fotocard[data-id]")]
+  const btn = document.getElementById("saveOrderBtn")
+  btn.innerText = "Salvando..."
+  btn.style.background = "#444"
+
+  try {
+    const updates = {}
+    cards.forEach((el, i) => {
+      updates[`fotocards/${el.dataset.id}/order`] = i
+    })
+    await update(ref(db), updates)
+    btn.innerText = "✅ Salvo!"
+    btn.style.background = "#1a6a1a"
+    orderChanged = false
+    setTimeout(() => {
+      btn.style.display = "none"
+      btn.innerText = "💾 Salvar ordem"
+      btn.style.background = "#7c5cff"
+    }, 1800)
+  } catch(err){
+    btn.innerText = "❌ Erro"
+    btn.style.background = "#6a1a1a"
+    console.error(err)
+    setTimeout(() => {
+      btn.innerText = "💾 Salvar ordem"
+      btn.style.background = "#7c5cff"
+    }, 2000)
+  }
 }
 
 /* ---- NAV ---- */
 window.goBack = function(){
-  if(curAlbum){ curAlbum = null; renderAlbums() }
+  if(curAlbum){ curAlbum = null; orderChanged = false; renderAlbums() }
   else { window.location.href = "home.html" }
 }
-
 window.goBackToAlbums = function(){
-  curAlbum = null; renderAlbums()
+  curAlbum = null; orderChanged = false
+  document.getElementById("saveOrderBtn").style.display = "none"
+  renderAlbums()
 }
 
 /* ---- ADMIN ---- */
@@ -710,15 +645,12 @@ function setupDrop(dropId, fileId, previewId, nameId, onFile){
 setupDrop("aDrop","aFile","aPreview","aFileName", f => {
   aFile = f
   document.getElementById("aFileName").innerText = f.name
-  const p = document.getElementById("aPreview")
-  p.src = URL.createObjectURL(f); p.style.display = "block"
+  const p = document.getElementById("aPreview"); p.src = URL.createObjectURL(f); p.style.display = "block"
 })
-
 setupDrop("cDrop","cFile","cPreview","cFileName", f => {
   cFile = f
   document.getElementById("cFileName").innerText = f.name
-  const p = document.getElementById("cPreview")
-  p.src = URL.createObjectURL(f); p.style.display = "block"
+  const p = document.getElementById("cPreview"); p.src = URL.createObjectURL(f); p.style.display = "block"
 })
 
 /* ---- ÁLBUM MODAL ---- */
@@ -731,31 +663,18 @@ window.openAddAlbum = function(){
   document.getElementById("aBar").style.display = "none"
   openModal("mAlbum")
 }
-
 window.submitAlbum = async function(){
   const name = document.getElementById("aName").value.trim()
   if(!name){ alert("Coloque o nome do álbum!"); return }
-  const bar = document.getElementById("aBar")
-  const fill = document.getElementById("aFill")
-  const status = document.getElementById("aStatus")
+  const bar = document.getElementById("aBar"), fill = document.getElementById("aFill"), status = document.getElementById("aStatus")
   let cover = ""
   try {
-    if(aFile){
-      bar.style.display = "block"; status.innerText = "Enviando capa..."
-      cover = await upload(aFile, p => fill.style.width = p + "%")
-    }
-    await push(albumsRef, {
-      name,
-      artist: document.getElementById("aArtist").value.trim() || "BTS",
-      year:   document.getElementById("aYear").value.trim(),
-      cover
-    })
-    status.innerText = "✅ Álbum criado!"
-    fill.style.width = "100%"
+    if(aFile){ bar.style.display="block"; status.innerText="Enviando capa..."; cover = await upload(aFile, p => fill.style.width = p+"%") }
+    await push(albumsRef, { name, artist: document.getElementById("aArtist").value.trim()||"BTS", year: document.getElementById("aYear").value.trim(), cover })
+    status.innerText = "✅ Álbum criado!"; fill.style.width = "100%"
     setTimeout(() => closeModal("mAlbum"), 1200)
   } catch(e){ status.innerText = "❌ Erro. Tente novamente."; console.error(e) }
 }
-
 window.delAlbum = function(e, id){
   e.stopPropagation()
   if(!confirm("Remover este álbum e todos os fotocards?")) return
@@ -776,23 +695,20 @@ window.openAddCard = function(){
   if(curAlbum) sel.value = curAlbum
   openModal("mCard")
 }
-
 window.submitCard = async function(){
   const albumId = document.getElementById("cAlbum").value
   if(!albumId || !cFile){ alert("Selecione o álbum e a imagem!"); return }
-  const bar = document.getElementById("cBar")
-  const fill = document.getElementById("cFill")
-  const status = document.getElementById("cStatus")
+  const bar = document.getElementById("cBar"), fill = document.getElementById("cFill"), status = document.getElementById("cStatus")
   try {
     bar.style.display = "block"; status.innerText = "Enviando imagem..."
-    const img = await upload(cFile, p => fill.style.width = p + "%")
-    await push(cardsRef, { albumId, name: document.getElementById("cName").value.trim(), img })
-    status.innerText = "✅ Fotocard adicionado!"
-    fill.style.width = "100%"
+    const img = await upload(cFile, p => fill.style.width = p+"%")
+    // ordem = número de cards existentes (vai pro final)
+    const currentCards = fotocards.filter(c => c.albumId === albumId)
+    await push(cardsRef, { albumId, name: document.getElementById("cName").value.trim(), img, order: currentCards.length })
+    status.innerText = "✅ Fotocard adicionado!"; fill.style.width = "100%"
     setTimeout(() => closeModal("mCard"), 1200)
   } catch(e){ status.innerText = "❌ Erro. Tente novamente."; console.error(e) }
 }
-
 window.delCard = function(e, id){
   e.stopPropagation()
   if(!confirm("Remover este fotocard?")) return
@@ -806,21 +722,18 @@ window.openLb = function(i){
 }
 window.closeLb = () => document.getElementById("lightbox").classList.remove("open")
 window.lbClickBg = e => { if(e.target === document.getElementById("lightbox")) closeLb() }
-window.lbGo = function(dir){
-  lbIdx = (lbIdx + dir + lbList.length) % lbList.length
-  updateLb()
-}
+window.lbGo = function(dir){ lbIdx = (lbIdx+dir+lbList.length)%lbList.length; updateLb() }
 function updateLb(){
   const c = lbList[lbIdx]
   document.getElementById("lbImg").src = c.img
-  document.getElementById("lbInfo").innerText = (c.name || "") + " · " + (lbIdx+1) + " / " + lbList.length
+  document.getElementById("lbInfo").innerText = (c.name||"")+" · "+(lbIdx+1)+" / "+lbList.length
 }
 document.addEventListener("keydown", e => {
   const lb = document.getElementById("lightbox")
   if(!lb.classList.contains("open")) return
-  if(e.key === "ArrowLeft")  lbGo(-1)
-  if(e.key === "ArrowRight") lbGo(1)
-  if(e.key === "Escape")     closeLb()
+  if(e.key==="ArrowLeft") lbGo(-1)
+  if(e.key==="ArrowRight") lbGo(1)
+  if(e.key==="Escape") closeLb()
 })
 
 /* ---- MODAL HELPERS ---- */
@@ -831,3 +744,4 @@ window.modalBg    = (e, id) => { if(e.target === document.getElementById(id)) cl
 </script>
 </body>
 </html>
+ENDOFFILE
