@@ -476,7 +476,15 @@ opacity:.4;
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"
-import { getDatabase, ref, onValue, push, remove, off } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js"
+import {
+getDatabase,
+ref,
+onValue,
+get,
+push,
+remove,
+off
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js"
 
 const firebaseConfig = {
   apiKey: "AIzaSyDFShfAw6VJ51hjka27gUebd9fna6o4yGw",
@@ -529,6 +537,29 @@ window.showFavs = () => {
   setView("viewFavs")
   document.getElementById("navTitle").innerText = "♥ Favoritos"
   renderFavs()
+}
+
+async function loadCards(albumId){
+
+const snap =
+await get(
+ref(
+db,
+`fcCards/${albumId}`
+)
+)
+
+currentCards=[]
+
+snap.forEach(c=>
+currentCards.push({
+id:c.key,
+...c.val()
+})
+)
+
+renderCards()
+
 }
 
 function showCards(albumId){
@@ -759,26 +790,6 @@ setupDrop("cardsDropZone", "cardsInput", files => {
   document.getElementById("cardsInput").value = ""
 })
 
-window.submitAlbum = async () => {
-  const name = document.getElementById("albumName").value.trim()
-  const artist = document.getElementById("albumArtist").value.trim()
-  if(!name || !albumCoverFile){ alert("Preencha o nome e a capa!"); return }
-
-  const fill = document.getElementById("albumFill")
-  const status = document.getElementById("albumStatus")
-  document.getElementById("albumProgress").style.display = "block"
-  status.innerText = "Enviando capa..."
-
-  try {
-    const coverUrl = await uploadToCloudinary(albumCoverFile, p => fill.style.width = p + "%")
-    await push(ref(db, "fcAlbums"), { name, artist: artist||"BTS", cover: coverUrl })
-    status.innerText = "✅ Álbum criado!"
-    setTimeout(() => { closeModal("modalAlbum"); albumCoverFile = null }, 1000)
-  } catch(e) {
-    status.innerText = "❌ Erro. Tente novamente."
-  }
-}
-
 window.submitCards = async () => {
 
 if(!pendingFiles.length){
@@ -791,19 +802,17 @@ alert("Erro: nenhum álbum selecionado.")
 return
 }
 
-const albumId=currentAlbumId
+const albumId = currentAlbumId
 
-const fill=
+const fill =
 document.getElementById("cardsFill")
 
-const status=
+const status =
 document.getElementById("cardsStatus")
 
 document
 .getElementById("cardsProgress")
 .style.display="block"
-
-fill.style.width="0%"
 
 try{
 
@@ -823,10 +832,7 @@ p=>{
 
 fill.style.width=
 (
-(
-i+
-p/100
-)
+(i+p/100)
 /
 pendingFiles.length
 *
@@ -849,10 +855,9 @@ url
 }
 
 fill.style.width="100%"
-status.innerText=
-`✅ ${pendingFiles.length} fotocards adicionados!`
 
-/* limpa */
+status.innerText=
+`✅ ${pendingFiles.length} adicionados`
 
 pendingFiles=[]
 
@@ -864,20 +869,19 @@ document
 .getElementById("cardsInput")
 .value=""
 
-/* fecha */
-
-setTimeout(()=>{
+setTimeout(
+async()=>{
 
 closeModal(
 "modalCards"
 )
 
-},700)
-
-/* recarrega usando função que existe */
-
-showCards(
+await loadCards(
 albumId
+)
+
+},
+700
 )
 
 }catch(e){
@@ -885,7 +889,7 @@ albumId
 console.log(e)
 
 status.innerText=
-"❌ Erro no upload"
+"❌ Erro"
 
 }
 
