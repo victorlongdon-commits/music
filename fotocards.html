@@ -435,67 +435,77 @@ function renderAlbums(){
 window.openAlbum = id => { curAlbum = id; orderChanged = false; renderCards() }
 
 /* ---- FOTOCARDS ---- */
+let selectedSlot = null;
+const TOTAL_SLOTS = 30;
+
 function renderCards(){
   const album = albums.find(a => a.id === curAlbum)
-  if(!album){ curAlbum = null; renderAlbums(); return }
+  if(!album){
+    curAlbum = null
+    renderAlbums()
+    return
+  }
 
-  let cards = fotocards
-    .filter(c => c.albumId === curAlbum)
-    .sort((a,b) => (a.order ?? 9999) - (b.order ?? 9999))
-  lbList = cards
+  let cards = fotocards.filter(c => c.albumId === curAlbum)
 
   document.getElementById("navTitle").innerText = album.name
+
   document.getElementById("pageHeader").innerHTML = `
     <div style="display:flex;align-items:center;gap:14px;">
       <span style="cursor:pointer;opacity:.5;font-size:20px;" onclick="goBackToAlbums()">←</span>
       <h2>${album.name}</h2>
       <span class="cards-count">${cards.length} fotocards</span>
-    </div>`
+    </div>
+  `
 
-  if(isAdmin && cards.length > 1){
-    document.getElementById("dragHint").style.display = "block"
-  } else {
-    document.getElementById("dragHint").style.display = "none"
-  }
+  document.getElementById("dragHint").style.display = "none"
+  document.getElementById("saveOrderBtn").style.display = "none"
 
   const grid = document.createElement("div")
   grid.className = "cards-grid"
-  grid.id = "cardsGrid"
 
-  cards.forEach((c, i) => {
-    const card = document.createElement("div")
-    card.className = "fotocard"
-    card.dataset.id = c.id
+  for(let slot = 0; slot < TOTAL_SLOTS; slot++){
 
-    if(isAdmin){
-      card.draggable = true
-      card.addEventListener("dragstart", onDragStart)
-      card.addEventListener("dragend",   onDragEnd)
-      card.addEventListener("dragover",  onDragOver)
-      card.addEventListener("dragleave", onDragLeave)
-      card.addEventListener("drop",      onDrop)
+    const cardData = cards.find(c => Number(c.slot) === slot)
+
+    if(cardData){
+
+      const card = document.createElement("div")
+      card.className = "fotocard"
+
+      card.innerHTML = `
+        <img src="${cardData.img}">
+        ${isAdmin ? `<div class="fotocard-del" onclick="delCard(event,'${cardData.id}')">✕</div>` : ""}
+        <div class="fotocard-label">${cardData.name || ""}</div>
+      `
+
+      card.onclick = () => {
+        lbList = cards.filter(c => c.img)
+        const idx = lbList.findIndex(x => x.id === cardData.id)
+        openLb(idx)
+      }
+
+      grid.appendChild(card)
+
+    }else{
+
+      const empty = document.createElement("div")
+      empty.className = "add-card"
+
+      empty.innerHTML = `
+        <span class="plus">+</span>
+        <span>Adicionar Fotocard</span>
+      `
+
+      if(isAdmin){
+        empty.onclick = () => {
+          selectedSlot = slot
+          openAddCard()
+        }
+      }
+
+      grid.appendChild(empty)
     }
-
-    // imagem com draggable=false para evitar que o browser arraste a img separado
-    card.innerHTML = `
-      <img src="${c.img}" draggable="false" onerror="this.src='https://via.placeholder.com/150x225'">
-      ${isAdmin ? `<div class="fotocard-del" onclick="delCard(event,'${c.id}')">✕</div>` : ""}
-      ${c.name ? `<div class="fotocard-label">${c.name}</div>` : ""}
-    `
-
-    card.addEventListener("click", () => {
-      if(!orderChanged) openLb(i)
-    })
-
-    grid.appendChild(card)
-  })
-
-  if(isAdmin){
-    const addBtn = document.createElement("div")
-    addBtn.className = "add-card"
-    addBtn.innerHTML = `<span class="plus">+</span><span>Adicionar fotos</span>`
-    addBtn.onclick = openAddCard
-    grid.appendChild(addBtn)
   }
 
   document.getElementById("mainContent").innerHTML = ""
@@ -731,7 +741,12 @@ window.submitCard = async function(){
     bar.style.display = "block"; status.innerText = "Enviando imagem..."
     const img = await upload(cFile, p => fill.style.width = p+"%")
     const currentCards = fotocards.filter(c => c.albumId === albumId)
-    await push(cardsRef, { albumId, name: document.getElementById("cName").value.trim(), img, order: currentCards.length })
+    await push(cardsRef, {
+  albumId,
+  name: document.getElementById("cName").value.trim(),
+  img,
+  slot: selectedSlot
+})
     status.innerText = "✅ Fotocard adicionado!"; fill.style.width = "100%"
     setTimeout(() => closeModal("mCard"), 1200)
   } catch(e){ status.innerText = "❌ Erro. Tente novamente."; console.error(e) }
