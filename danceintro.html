@@ -2,7 +2,6 @@
 <html>
 
 <head>
-
 <meta charset="UTF-8">
 <title>DANCE INTRO</title>
 
@@ -18,14 +17,52 @@ body{
 background:black;
 overflow:hidden;
 height:100vh;
+font-family:Arial;
 }
 
+/* LOADING */
+#loading{
+position:fixed;
+inset:0;
+background:black;
+z-index:99999;
+display:flex;
+flex-direction:column;
+justify-content:center;
+align-items:center;
+color:white;
+gap:30px;
+transition:1.5s;
+}
+
+#loadingText{
+font-size:22px;
+letter-spacing:6px;
+opacity:.7;
+}
+
+#loadingBar{
+width:300px;
+height:3px;
+background:rgba(255,255,255,.2);
+border-radius:99px;
+overflow:hidden;
+}
+
+#loadingFill{
+height:100%;
+width:0%;
+background:white;
+border-radius:99px;
+transition:.3s;
+}
+
+/* FUNDO */
 #bgVideo{
 position:fixed;
 inset:0;
 width:100%;
 height:100%;
-object-fit:cover;
 filter:blur(35px) brightness(.3);
 transform:scale(1.2);
 z-index:-2;
@@ -51,15 +88,9 @@ z-index:-1;
 position:fixed;
 inset:0;
 background:black;
-z-index:999;
-animation:open 3s forwards;
-}
-
-@keyframes open{
-to{
-opacity:0;
-visibility:hidden;
-}
+z-index:998;
+opacity:1;
+transition:2s;
 }
 
 #startText{
@@ -71,6 +102,7 @@ font-size:50px;
 letter-spacing:8px;
 color:white;
 z-index:1000;
+opacity:0;
 transition:2s;
 }
 
@@ -79,11 +111,7 @@ position:absolute;
 overflow:hidden;
 border:3px solid white;
 opacity:0;
-animation:appear 2s forwards;
-}
-
-@keyframes appear{
-to{ opacity:1; }
+transition:1s;
 }
 
 .frame iframe{
@@ -99,90 +127,18 @@ top:2%;
 width:18vw;
 height:70vh;
 z-index:50;
-animation-delay:2s;
 }
 
-.v1{
-left:4%;
-top:18%;
-width:32vw;
-height:38vh;
-transform:rotate(-25deg);
-animation-delay:2.3s;
-}
-
-.v2{
-right:4%;
-top:18%;
-width:32vw;
-height:38vh;
-transform:rotate(25deg);
-animation-delay:2.5s;
-}
-
-.v3{
-left:26%;
-bottom:2%;
-width:42vw;
-height:25vh;
-animation-delay:2.7s;
-}
-
-.v4{
-right:3%;
-bottom:0;
-width:24vw;
-height:26vh;
-animation-delay:2.8s;
-}
-
-.v5{
-left:0;
-top:0;
-width:14vw;
-height:32vh;
-animation-delay:3s;
-}
-
-.v6{
-right:0;
-top:0;
-width:14vw;
-height:32vh;
-animation-delay:3.1s;
-}
-
-.v7{
-left:8%;
-bottom:0;
-width:18vw;
-height:20vh;
-animation-delay:3.2s;
-}
-
-.v8{
-right:18%;
-bottom:18%;
-width:14vw;
-height:18vh;
-animation-delay:3.3s;
-}
-
-.v9{
-left:53%;
-top:60%;
-width:14vw;
-height:18vh;
-animation-delay:3.4s;
-}
-
-.v10{
-right:0;
-top:50%;
-width:18vw;
-height:18vh;
-animation-delay:3.5s;
-}
+.v1{ left:4%; top:18%; width:32vw; height:38vh; transform:rotate(-25deg); }
+.v2{ right:4%; top:18%; width:32vw; height:38vh; transform:rotate(25deg); }
+.v3{ left:26%; bottom:2%; width:42vw; height:25vh; }
+.v4{ right:3%; bottom:0; width:24vw; height:26vh; }
+.v5{ left:0; top:0; width:14vw; height:32vh; }
+.v6{ right:0; top:0; width:14vw; height:32vh; }
+.v7{ left:8%; bottom:0; width:18vw; height:20vh; }
+.v8{ right:18%; bottom:18%; width:14vw; height:18vh; }
+.v9{ left:53%; top:60%; width:14vw; height:18vh; }
+.v10{ right:0; top:50%; width:18vw; height:18vh; }
 
 #final{
 position:fixed;
@@ -200,7 +156,6 @@ text-align:center;
 }
 
 </style>
-
 </head>
 
 <body>
@@ -209,82 +164,111 @@ text-align:center;
   <source src="music/euphoria.mp3">
 </audio>
 
+<!-- LOADING -->
+<div id="loading">
+  <div id="loadingText">LOADING</div>
+  <div id="loadingBar"><div id="loadingFill"></div></div>
+</div>
+
 <!-- FUNDO -->
 <div id="bgVideo">
-  <iframe src="https://www.youtube.com/embed/IfurZy0ckcc?autoplay=1&mute=1&loop=1&playlist=IfurZy0ckcc&controls=0&showinfo=0&modestbranding=1" allow="autoplay"></iframe>
+  <iframe id="iframe0" src="https://www.youtube.com/embed/IfurZy0ckcc?autoplay=1&mute=1&loop=1&playlist=IfurZy0ckcc&controls=0&modestbranding=1&enablejsapi=1" allow="autoplay"></iframe>
 </div>
 
 <div id="transition"></div>
 <div id="startText">EVERY MEMORY LEADS HERE</div>
 
 <!-- QUADROS -->
-<div class="frame v1"><iframe src="https://www.youtube.com/embed/IfurZy0ckcc?autoplay=1&mute=1&loop=1&playlist=IfurZy0ckcc&controls=0&showinfo=0&modestbranding=1" allow="autoplay"></iframe></div>
-<div class="frame v2"><iframe src="https://www.youtube.com/embed/zCtRk1oDOKI?autoplay=1&mute=1&loop=1&playlist=zCtRk1oDOKI&controls=0&showinfo=0&modestbranding=1" allow="autoplay"></iframe></div>
-<div class="frame v3"><iframe src="https://www.youtube.com/embed/q86HF4qWQu0?autoplay=1&mute=1&loop=1&playlist=q86HF4qWQu0&controls=0&showinfo=0&modestbranding=1" allow="autoplay"></iframe></div>
-<div class="frame v4"><iframe src="https://www.youtube.com/embed/xDWO2dk3d08?autoplay=1&mute=1&loop=1&playlist=xDWO2dk3d08&controls=0&showinfo=0&modestbranding=1" allow="autoplay"></iframe></div>
-<div class="frame v5"><iframe src="https://www.youtube.com/embed/aabzHbj-wOY?autoplay=1&mute=1&loop=1&playlist=aabzHbj-wOY&controls=0&showinfo=0&modestbranding=1" allow="autoplay"></iframe></div>
-<div class="frame v6"><iframe src="https://www.youtube.com/embed/ujTwQAluTlQ?autoplay=1&mute=1&loop=1&playlist=ujTwQAluTlQ&controls=0&showinfo=0&modestbranding=1" allow="autoplay"></iframe></div>
-<div class="frame v7"><iframe src="https://www.youtube.com/embed/NELEUqaD87U?autoplay=1&mute=1&loop=1&playlist=NELEUqaD87U&controls=0&showinfo=0&modestbranding=1" allow="autoplay"></iframe></div>
-<div class="frame v8"><iframe src="https://www.youtube.com/embed/b8jJRNhcsaA?autoplay=1&mute=1&loop=1&playlist=b8jJRNhcsaA&controls=0&showinfo=0&modestbranding=1" allow="autoplay"></iframe></div>
-<div class="frame v9"><iframe src="https://www.youtube.com/embed/VHJPKDDJkPs?autoplay=1&mute=1&loop=1&playlist=VHJPKDDJkPs&controls=0&showinfo=0&modestbranding=1" allow="autoplay"></iframe></div>
-<div class="frame v10"><iframe src="https://www.youtube.com/embed/ctpPoe9FZAg?autoplay=1&mute=1&loop=1&playlist=ctpPoe9FZAg&controls=0&showinfo=0&modestbranding=1" allow="autoplay"></iframe></div>
-
-<!-- CENTRO -->
-<div class="frame center">
-  <iframe src="https://www.youtube.com/embed/UH6o_WIXnjI?autoplay=1&mute=1&loop=1&playlist=UH6o_WIXnjI&controls=0&showinfo=0&modestbranding=1" allow="autoplay"></iframe>
-</div>
+<div class="frame v1"><iframe src="https://www.youtube.com/embed/IfurZy0ckcc?autoplay=1&mute=1&loop=1&playlist=IfurZy0ckcc&controls=0&modestbranding=1" allow="autoplay"></iframe></div>
+<div class="frame v2"><iframe src="https://www.youtube.com/embed/zCtRk1oDOKI?autoplay=1&mute=1&loop=1&playlist=zCtRk1oDOKI&controls=0&modestbranding=1" allow="autoplay"></iframe></div>
+<div class="frame v3"><iframe src="https://www.youtube.com/embed/q86HF4qWQu0?autoplay=1&mute=1&loop=1&playlist=q86HF4qWQu0&controls=0&modestbranding=1" allow="autoplay"></iframe></div>
+<div class="frame v4"><iframe src="https://www.youtube.com/embed/xDWO2dk3d08?autoplay=1&mute=1&loop=1&playlist=xDWO2dk3d08&controls=0&modestbranding=1" allow="autoplay"></iframe></div>
+<div class="frame v5"><iframe src="https://www.youtube.com/embed/aabzHbj-wOY?autoplay=1&mute=1&loop=1&playlist=aabzHbj-wOY&controls=0&modestbranding=1" allow="autoplay"></iframe></div>
+<div class="frame v6"><iframe src="https://www.youtube.com/embed/ujTwQAluTlQ?autoplay=1&mute=1&loop=1&playlist=ujTwQAluTlQ&controls=0&modestbranding=1" allow="autoplay"></iframe></div>
+<div class="frame v7"><iframe src="https://www.youtube.com/embed/NELEUqaD87U?autoplay=1&mute=1&loop=1&playlist=NELEUqaD87U&controls=0&modestbranding=1" allow="autoplay"></iframe></div>
+<div class="frame v8"><iframe src="https://www.youtube.com/embed/b8jJRNhcsaA?autoplay=1&mute=1&loop=1&playlist=b8jJRNhcsaA&controls=0&modestbranding=1" allow="autoplay"></iframe></div>
+<div class="frame v9"><iframe src="https://www.youtube.com/embed/VHJPKDDJkPs?autoplay=1&mute=1&loop=1&playlist=VHJPKDDJkPs&controls=0&modestbranding=1" allow="autoplay"></iframe></div>
+<div class="frame v10"><iframe src="https://www.youtube.com/embed/ctpPoe9FZAg?autoplay=1&mute=1&loop=1&playlist=ctpPoe9FZAg&controls=0&modestbranding=1" allow="autoplay"></iframe></div>
+<div class="frame center"><iframe src="https://www.youtube.com/embed/UH6o_WIXnjI?autoplay=1&mute=1&loop=1&playlist=UH6o_WIXnjI&controls=0&modestbranding=1" allow="autoplay"></iframe></div>
 
 <div id="final"></div>
 
 <script>
 
 const music = document.getElementById("music")
+const loading = document.getElementById("loading")
+const loadingFill = document.getElementById("loadingFill")
+const transition = document.getElementById("transition")
+const startText = document.getElementById("startText")
+const frames = document.querySelectorAll(".frame")
 
-music.currentTime = Number(localStorage.getItem("musicTime") || 0)
-music.volume = .35
-music.play().catch(()=>{})
+// Simula progresso de loading (aguarda 8s para os iframes carregarem)
+let progress = 0
+const interval = setInterval(()=>{
+  progress += 100/80 // chega a 100% em ~8s
+  if(progress >= 100){
+    progress = 100
+    clearInterval(interval)
+    startIntro()
+  }
+  loadingFill.style.width = progress + "%"
+}, 100)
 
-setInterval(()=>{
-  localStorage.setItem("musicTime", music.currentTime)
-}, 500)
+function startIntro(){
+  // Esconde loading
+  loading.style.opacity = "0"
+  setTimeout(()=>{ loading.style.display = "none" }, 1500)
 
-setTimeout(()=>{
-  startText.style.opacity = "0"
-}, 2000)
+  // Inicia música
+  music.currentTime = Number(localStorage.getItem("musicTime") || 0)
+  music.volume = .35
+  music.play().catch(()=>{})
 
-setTimeout(()=>{
+  setInterval(()=>{
+    localStorage.setItem("musicTime", music.currentTime)
+  }, 500)
 
-  document.querySelectorAll(".frame").forEach(v=>{
-    v.style.opacity = ".15"
+  // Abre transição
+  setTimeout(()=>{
+    transition.style.opacity = "0"
+    setTimeout(()=>{ transition.style.display = "none" }, 2000)
+  }, 500)
+
+  // Mostra frase
+  setTimeout(()=>{ startText.style.opacity = "1" }, 800)
+  setTimeout(()=>{ startText.style.opacity = "0" }, 3000)
+
+  // Aparece quadros um por um
+  const delays = [2000, 2300, 2500, 2700, 2800, 3000, 3100, 3200, 3300, 3400, 3500]
+  frames.forEach((f, i)=>{
+    setTimeout(()=>{ f.style.opacity = "1" }, delays[i] || 3500)
   })
 
-  const end = document.getElementById("final")
-  end.style.display = "flex"
-
-  setTimeout(()=>{ end.style.opacity = "1" }, 100)
-
-  end.innerHTML = `
-    <div style="font-size:52px;">THIS WEBSITE</div>
-    <div style="font-size:30px;margin-top:20px;">WAS MADE FOR YOU</div>
-  `
-
+  // FINAL
   setTimeout(()=>{
+    frames.forEach(v=>{ v.style.opacity = ".15" })
+    const end = document.getElementById("final")
+    end.style.display = "flex"
+    setTimeout(()=>{ end.style.opacity = "1" }, 100)
     end.innerHTML = `
-      <div style="font-size:30px;">AS A GIFT</div>
-      <div style="font-size:22px;margin-top:20px;">FROM THE BOYS</div>
+      <div style="font-size:52px;">THIS WEBSITE</div>
+      <div style="font-size:30px;margin-top:20px;">WAS MADE FOR YOU</div>
     `
-  }, 4000)
-
-  setTimeout(()=>{
-    end.innerHTML = `<div style="font-size:80px;">ENJOY</div>`
-  }, 8000)
-
-  setTimeout(()=>{
-    localStorage.setItem("continueMusic", music.currentTime)
-    window.location.href = "home.html"
-  }, 12000)
-
-}, 17000)
+    setTimeout(()=>{
+      end.innerHTML = `
+        <div style="font-size:30px;">AS A GIFT</div>
+        <div style="font-size:22px;margin-top:20px;">FROM THE BOYS</div>
+      `
+    }, 4000)
+    setTimeout(()=>{
+      end.innerHTML = `<div style="font-size:80px;">ENJOY</div>`
+    }, 8000)
+    setTimeout(()=>{
+      localStorage.setItem("continueMusic", music.currentTime)
+      window.location.href = "home.html"
+    }, 12000)
+  }, 17000)
+}
 
 </script>
 
