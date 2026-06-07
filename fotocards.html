@@ -760,7 +760,8 @@ setupDrop("albumCoverZone", "albumCoverInput", files => {
 })
 
 setupDrop("cardsDropZone", "cardsInput", files => {
-  pendingFiles = files.filter(f => f.type.startsWith("image/"))
+  const novos = files.filter(f => f.type.startsWith("image/"))
+  pendingFiles = [...pendingFiles, ...novos]
   const list = document.getElementById("uploadList")
   list.innerHTML = pendingFiles.map(f => `
     <div class="uploadItem">
@@ -768,6 +769,8 @@ setupDrop("cardsDropZone", "cardsInput", files => {
       <span>${f.name}</span>
     </div>
   `).join("")
+  // Reseta o input para permitir selecionar os mesmos arquivos novamente
+  document.getElementById("cardsInput").value = ""
 })
 
 // SUBMIT ÁLBUM
@@ -853,7 +856,11 @@ window.closeModal = (id) => {
   document.getElementById("albumProgress").style.display = "none"
   document.getElementById("albumStatus").innerText = ""
   document.getElementById("cardsProgress").style.display = "none"
+  document.getElementById("cardsFill").style.width = "0%"
   document.getElementById("cardsStatus").innerText = ""
+  document.getElementById("uploadList").innerHTML = ""
+  document.getElementById("cardsInput").value = ""
+  pendingFiles = []
 }
 
 // INIT
