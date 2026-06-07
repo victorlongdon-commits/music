@@ -1,4 +1,3 @@
-cat > /mnt/user-data/outputs/fotocards.html << 'ENDOFFILE'
 <!DOCTYPE html>
 <html>
 <head>
@@ -42,7 +41,6 @@ nav{
 .pill-admin{ background:#1a1a4a; color:white; }
 .pill-admin.active{ background:#2d2d8a; }
 
-/* SAVE ORDER BTN — aparece só quando admin está arrastando */
 #saveOrderBtn{
   display:none;
   padding:9px 20px; border-radius:99px; border:none;
@@ -59,7 +57,6 @@ nav{
 .page-header{ margin-bottom:28px; }
 .page-header h2{ font-size:22px; font-weight:bold; }
 
-/* ÁLBUNS */
 .albums-grid{
   display:grid;
   grid-template-columns:repeat(auto-fill, 190px);
@@ -97,7 +94,6 @@ nav{
 .album-card:hover .album-del{ opacity:1; }
 .album-del:hover{ background:rgba(200,0,0,.6); }
 
-/* ADD CARD */
 .add-card{
   border-radius:16px; border:2px dashed rgba(255,255,255,.12);
   display:flex; flex-direction:column;
@@ -114,7 +110,6 @@ nav{
 .albums-grid .add-card{ height:242px; width:190px; }
 .cards-grid .add-card{ height:249px; width:150px; }
 
-/* FOTOCARDS */
 .cards-grid{
   display:grid;
   grid-template-columns:repeat(auto-fill, 150px);
@@ -150,7 +145,6 @@ nav{
 .fotocard:hover .fotocard-del{ opacity:1; }
 .fotocard-del:hover{ background:rgba(200,0,0,.6); }
 
-/* DRAG STATES */
 .fotocard.dragging{
   opacity:.35;
   transform:scale(.96);
@@ -162,16 +156,13 @@ nav{
   box-shadow:0 0 0 2px #7c5cff;
 }
 
-/* drag hint bar */
 .drag-hint{
   font-size:12px; opacity:.3; letter-spacing:1px;
   margin-bottom:14px; display:none;
 }
 
-/* count badge */
 .cards-count{ font-size:13px; opacity:.3; letter-spacing:1px; margin-left:4px; }
 
-/* LIGHTBOX */
 .lightbox{
   position:fixed; inset:0; background:rgba(0,0,0,.94);
   z-index:9999; display:none;
@@ -197,7 +188,6 @@ nav{
   font-size:12px; opacity:.35; letter-spacing:2px; white-space:nowrap;
 }
 
-/* MODAL */
 .modal{
   position:fixed; inset:0; background:rgba(0,0,0,.85);
   display:none; z-index:99999;
@@ -248,7 +238,6 @@ nav{
 .prog-fill{ height:100%; background:#7c5cff; width:0%; transition:.3s; }
 .status{ font-size:12px; opacity:.4; margin-top:6px; min-height:16px; }
 
-/* LOADING */
 #ls{
   position:fixed; inset:0; background:#08080f; z-index:99999;
   display:flex; justify-content:center; align-items:center;
@@ -362,7 +351,7 @@ let lbList = [], lbIdx = 0
 
 // drag state
 let dragSrc = null
-let orderChanged = false
+let orderChanged = false  // TRUE = tem mudanças não salvas, bloqueia re-render do Firebase
 
 function refreshAdminPill(){
   const p = document.getElementById("adminPill")
@@ -371,12 +360,11 @@ function refreshAdminPill(){
 }
 refreshAdminPill()
 
-// Firebase
+// Firebase — só re-renderiza se NÃO há mudanças pendentes
 onValue(albumsRef, snap => {
   albums = []
   snap.forEach(c => albums.push({ id:c.key, ...c.val() }))
-  // só re-renderiza se não estiver no meio de um drag
-  if(!dragSrc) render()
+  if(!orderChanged) render()
 })
 
 onValue(cardsRef, snap => {
@@ -384,7 +372,8 @@ onValue(cardsRef, snap => {
   snap.forEach(c => fotocards.push({ id:c.key, ...c.val() }))
   document.getElementById("ls").style.opacity = "0"
   setTimeout(() => document.getElementById("ls").style.display = "none", 1000)
-  if(!dragSrc) render()
+  // ← CORREÇÃO: só re-renderiza se não há reordenação pendente
+  if(!orderChanged) render()
 })
 
 function render(){
@@ -431,7 +420,6 @@ function renderCards(){
   const album = albums.find(a => a.id === curAlbum)
   if(!album){ curAlbum = null; renderAlbums(); return }
 
-  // ordena por campo "order" se existir
   let cards = fotocards
     .filter(c => c.albumId === curAlbum)
     .sort((a,b) => (a.order ?? 9999) - (b.order ?? 9999))
@@ -459,7 +447,6 @@ function renderCards(){
     const card = document.createElement("div")
     card.className = "fotocard"
     card.dataset.id = c.id
-    card.dataset.idx = i
 
     if(isAdmin){
       card.draggable = true
@@ -476,9 +463,8 @@ function renderCards(){
       ${c.name ? `<div class="fotocard-label">${c.name}</div>` : ""}
     `
 
-    // clique abre lightbox só se não estiver arrastando
     card.addEventListener("click", () => {
-      if(!orderChanged || !dragSrc) openLb(i)
+      if(!orderChanged) openLb(i)
     })
 
     grid.appendChild(card)
@@ -534,14 +520,13 @@ function onDrop(e){
   const srcIdx  = cards.indexOf(dragSrc)
   const destIdx = cards.indexOf(this)
 
-  // reinsere no DOM na posição certa
   if(srcIdx < destIdx){
     grid.insertBefore(dragSrc, this.nextSibling)
   } else {
     grid.insertBefore(dragSrc, this)
   }
 
-  // marca que houve mudança
+  // CORREÇÃO: marca como pendente ANTES de qualquer update do Firebase
   orderChanged = true
   document.getElementById("saveOrderBtn").style.display = "block"
 }
@@ -554,6 +539,7 @@ window.saveOrder = async function(){
   const btn = document.getElementById("saveOrderBtn")
   btn.innerText = "Salvando..."
   btn.style.background = "#444"
+  btn.style.animation = "none"
 
   try {
     const updates = {}
@@ -561,13 +547,25 @@ window.saveOrder = async function(){
       updates[`fotocards/${el.dataset.id}/order`] = i
     })
     await update(ref(db), updates)
+
+    // Atualiza array local com a nova ordem para que o próximo render do Firebase
+    // não cause reordenação indesejada
+    cards.forEach((el, i) => {
+      const fc = fotocards.find(f => f.id === el.dataset.id)
+      if(fc) fc.order = i
+    })
+
     btn.innerText = "✅ Salvo!"
     btn.style.background = "#1a6a1a"
+
+    // Só agora libera o Firebase para re-renderizar
     orderChanged = false
+
     setTimeout(() => {
       btn.style.display = "none"
       btn.innerText = "💾 Salvar ordem"
       btn.style.background = "#7c5cff"
+      btn.style.animation = "pulse 1.5s infinite"
     }, 1800)
   } catch(err){
     btn.innerText = "❌ Erro"
@@ -576,6 +574,7 @@ window.saveOrder = async function(){
     setTimeout(() => {
       btn.innerText = "💾 Salvar ordem"
       btn.style.background = "#7c5cff"
+      btn.style.animation = "pulse 1.5s infinite"
     }, 2000)
   }
 }
@@ -702,7 +701,6 @@ window.submitCard = async function(){
   try {
     bar.style.display = "block"; status.innerText = "Enviando imagem..."
     const img = await upload(cFile, p => fill.style.width = p+"%")
-    // ordem = número de cards existentes (vai pro final)
     const currentCards = fotocards.filter(c => c.albumId === albumId)
     await push(cardsRef, { albumId, name: document.getElementById("cName").value.trim(), img, order: currentCards.length })
     status.innerText = "✅ Fotocard adicionado!"; fill.style.width = "100%"
@@ -744,4 +742,3 @@ window.modalBg    = (e, id) => { if(e.target === document.getElementById(id)) cl
 </script>
 </body>
 </html>
-ENDOFFILE
