@@ -867,6 +867,23 @@ window.checkAdmin = () => {
 window.openModal = (id) => { document.getElementById(id).style.display = "flex" }
 window.closeModal = (id) => { document.getElementById(id).style.display = "none" }
 
+window.checkAdmin = () => {
+  const key = prompt("Admin key:")
+  if(key === "12345"){
+    document.getElementById("adminBtn").style.display = "block"
+    document.getElementById("removeBtn").style.display = "block"
+    alert("Modo admin ativado!")
+    // Adiciona botão pro intro admin
+    const btn = document.createElement("a")
+    btn.href = "intro-admin.html"
+    btn.innerText = "🎬 INTRO"
+    btn.style.cssText = "color:white;text-decoration:none;font-size:13px;padding:8px 16px;background:#1a1a1a;border-radius:10px;"
+    document.querySelector("nav").appendChild(btn)
+  } else {
+    alert("Acesso negado")
+  }
+}
+
 </script>
 
 </body>
