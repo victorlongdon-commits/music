@@ -4,8 +4,6 @@ VERSÃO PARA IMPLEMENTAR:
 - slot salvo no Firebase
 - sem drag and drop
 - adicionar fotocard em posição específica
-
-Este arquivo foi gerado automaticamente como base de trabalho.
 -->
 <!DOCTYPE html>
 <html>
@@ -49,18 +47,6 @@ nav{
 .pill-fav{ background:#7c1f2e; color:white; }
 .pill-admin{ background:#1a1a4a; color:white; }
 .pill-admin.active{ background:#2d2d8a; }
-
-#saveOrderBtn{
-  display:none;
-  padding:9px 20px; border-radius:99px; border:none;
-  background:#7c5cff; color:white; font-size:13px; font-weight:bold;
-  cursor:pointer; transition:.2s; animation: pulse 1.5s infinite;
-}
-#saveOrderBtn:hover{ transform:scale(1.05); background:#9b7fff; }
-@keyframes pulse{
-  0%,100%{ box-shadow:0 0 0 0 rgba(124,92,255,.4); }
-  50%{ box-shadow:0 0 0 8px rgba(124,92,255,0); }
-}
 
 .page{ padding:32px 28px; }
 .page-header{ margin-bottom:28px; }
@@ -129,32 +115,22 @@ nav{
   width:150px; border-radius:14px; overflow:hidden;
   position:relative;
   border:1px solid rgba(255,255,255,.06);
-  transition:transform .25s, box-shadow .25s, border-color .25s, opacity .2s;
+  transition:transform .25s, box-shadow .25s, border-color .25s;
   background:#111120;
-  user-select:none;
-  cursor:grab;
+  cursor:pointer;
 }
-/* desativa todos os eventos de pointer em filhos durante drag */
-.cards-grid.is-dragging .fotocard *{
-  pointer-events: none;
-}
-.fotocard:not(.dragging):hover{
+.fotocard:hover{
   transform:translateY(-5px) scale(1.03);
   border-color:rgba(255,255,255,.2);
   box-shadow:0 14px 40px rgba(0,0,0,.5);
 }
-/* imagens NUNCA são arrastáveis pelo browser */
 .fotocard img{
   width:150px; height:225px; object-fit:cover; display:block;
   pointer-events:none;
-  -webkit-user-drag: none;
-  user-drag: none;
-  draggable: false;
 }
 .fotocard-label{
   padding:8px 10px; font-size:11px; opacity:.5;
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-  pointer-events:none;
 }
 .fotocard-del{
   position:absolute; top:6px; right:6px;
@@ -166,23 +142,6 @@ nav{
 }
 .fotocard:hover .fotocard-del{ opacity:1; }
 .fotocard-del:hover{ background:rgba(200,0,0,.6); }
-
-.fotocard.dragging{
-  opacity:.3;
-  transform:scale(.95);
-  cursor:grabbing;
-  border-color: rgba(124,92,255,.5);
-}
-.fotocard.drag-over{
-  border-color:#7c5cff;
-  box-shadow:0 0 0 2px #7c5cff;
-  transform: scale(1.03);
-}
-
-.drag-hint{
-  font-size:12px; opacity:.3; letter-spacing:1px;
-  margin-bottom:14px; display:none;
-}
 
 .cards-count{ font-size:13px; opacity:.3; letter-spacing:1px; margin-left:4px; }
 
@@ -210,6 +169,17 @@ nav{
   position:absolute; bottom:20px; left:50%; transform:translateX(-50%);
   font-size:12px; opacity:.35; letter-spacing:2px; white-space:nowrap;
 }
+.lb-actions{
+  position:absolute; bottom:50px; left:50%; transform:translateX(-50%);
+  display:flex; gap:12px;
+}
+.lb-btn{
+  padding:8px 18px; border-radius:99px; border:none;
+  font-size:13px; font-weight:bold; cursor:pointer; transition:.2s;
+}
+.lb-btn:hover{ transform:scale(1.05); }
+.lb-fav{ background:#7c1f2e; color:white; }
+.lb-dl{ background:#1a1a4a; color:white; }
 
 .modal{
   position:fixed; inset:0; background:rgba(0,0,0,.85);
@@ -261,6 +231,12 @@ nav{
 .prog-fill{ height:100%; background:#7c5cff; width:0%; transition:.3s; }
 .status{ font-size:12px; opacity:.4; margin-top:6px; min-height:16px; }
 
+.slot-info{
+  font-size:12px; opacity:.4; margin-bottom:12px;
+  padding:8px 12px; background:rgba(255,255,255,.04);
+  border-radius:8px; border:1px solid rgba(255,255,255,.06);
+}
+
 #ls{
   position:fixed; inset:0; background:#08080f; z-index:99999;
   display:flex; justify-content:center; align-items:center;
@@ -279,23 +255,26 @@ nav{
     <span class="nav-title" id="navTitle">Fotocards</span>
   </div>
   <div class="nav-right">
-    <button id="saveOrderBtn" onclick="saveOrder()">💾 Salvar ordem</button>
-    <button class="pill pill-fav">♥ Favoritos</button>
+    <button class="pill pill-fav" onclick="toggleFavView()">♥ Favoritos</button>
     <button class="pill pill-admin" id="adminPill" onclick="toggleAdmin()">Admin</button>
   </div>
 </nav>
 
 <div class="page">
   <div class="page-header" id="pageHeader"><h2>Álbuns &amp; Eras</h2></div>
-  <div class="drag-hint" id="dragHint">↔ Arraste para reordenar · clique em 💾 para salvar</div>
   <div id="mainContent"></div>
 </div>
 
+<!-- LIGHTBOX -->
 <div class="lightbox" id="lightbox" onclick="lbClickBg(event)">
-  <span class="lb-close" onclick="closeLb()">✕</span>
+  <span class="lb-close" onclick="closeLb()">✕ Fechar</span>
   <span class="lb-arrow lb-prev" onclick="lbGo(-1)">‹</span>
   <img class="lb-img" id="lbImg">
   <span class="lb-arrow lb-next" onclick="lbGo(1)">›</span>
+  <div class="lb-actions">
+    <button class="lb-btn lb-fav" onclick="toggleFav()">♥ Favoritar</button>
+    <button class="lb-btn lb-dl" onclick="downloadCard()">⬇ Baixar</button>
+  </div>
   <span class="lb-info" id="lbInfo"></span>
 </div>
 
@@ -315,7 +294,7 @@ nav{
     <div class="prog-bar" id="aBar"><div class="prog-fill" id="aFill"></div></div>
     <p class="status" id="aStatus"></p>
     <div class="btn-row">
-      <button class="b-save" onclick="submitAlbum()">SALVAR</button>
+      <button class="b-save" onclick="submitAlbum()">CRIAR</button>
       <button class="b-cancel" onclick="closeModal('mAlbum')">CANCELAR</button>
     </div>
   </div>
@@ -325,10 +304,10 @@ nav{
 <div class="modal" id="mCard" onclick="modalBg(event,'mCard')">
   <div class="modal-box">
     <h2>🃏 Adicionar Fotocard</h2>
-    <select class="sel" id="cAlbum"></select>
+    <p class="slot-info" id="slotInfo">Slot: —</p>
     <input class="field" id="cName" placeholder="Nome / descrição (ex: Jungkook ver. A)">
     <div class="drop" id="cDrop" onclick="document.getElementById('cFile').click()">
-      🖼️ Imagem do fotocard
+      🖼️ Arraste várias fotos ou clique para selecionar
       <p id="cFileName">Nenhum arquivo selecionado</p>
       <img class="drop-preview" id="cPreview">
     </div>
@@ -336,7 +315,7 @@ nav{
     <div class="prog-bar" id="cBar"><div class="prog-fill" id="cFill"></div></div>
     <p class="status" id="cStatus"></p>
     <div class="btn-row">
-      <button class="b-save" onclick="submitCard()">SALVAR</button>
+      <button class="b-save" onclick="submitCard()">ENVIAR</button>
       <button class="b-cancel" onclick="closeModal('mCard')">CANCELAR</button>
     </div>
   </div>
@@ -344,7 +323,7 @@ nav{
 
 <script type="module">
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js"
+import { initializeApp }    from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js"
 import { getDatabase, ref, onValue, push, remove, update } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-database.js"
 
 const firebaseConfig = {
@@ -369,11 +348,22 @@ let albums    = []
 let fotocards = []
 let curAlbum  = null
 let isAdmin   = localStorage.getItem("isAdmin") === "true"
-let aFile = null, cFile = null
-let lbList = [], lbIdx = 0
-let dragSrc = null
-let orderChanged = false
+let aFile     = null
+let cFile     = null
+let lbList    = []
+let lbIdx     = 0
+let favIds    = JSON.parse(localStorage.getItem("favCards") || "[]")
+let showFavs  = false
 
+// selectedSlot precisa ser acessível globalmente dentro do módulo
+// e também exposta via window para os onclick do HTML
+let selectedSlot = null
+window._getSelectedSlot = () => selectedSlot
+window._setSelectedSlot = (v) => { selectedSlot = v }
+
+const TOTAL_SLOTS = 30
+
+/* ---- ADMIN ---- */
 function refreshAdminPill(){
   const p = document.getElementById("adminPill")
   if(isAdmin){ p.innerText = "✓ Admin"; p.classList.add("active") }
@@ -381,31 +371,54 @@ function refreshAdminPill(){
 }
 refreshAdminPill()
 
+window.toggleAdmin = function(){
+  if(isAdmin){
+    isAdmin = false
+    localStorage.removeItem("isAdmin")
+    refreshAdminPill()
+    render()
+    return
+  }
+  const key = prompt("Admin key:")
+  if(key === "12345"){
+    isAdmin = true
+    localStorage.setItem("isAdmin","true")
+    refreshAdminPill()
+    render()
+  } else if(key !== null){
+    alert("Acesso negado")
+  }
+}
+
+/* ---- FIREBASE LISTENERS ---- */
 onValue(albumsRef, snap => {
   albums = []
   snap.forEach(c => albums.push({ id:c.key, ...c.val() }))
-  if(!orderChanged) render()
+  render()
 })
 
 onValue(cardsRef, snap => {
   fotocards = []
   snap.forEach(c => fotocards.push({ id:c.key, ...c.val() }))
-  document.getElementById("ls").style.opacity = "0"
-  setTimeout(() => document.getElementById("ls").style.display = "none", 1000)
-  if(!orderChanged) render()
+  // Esconde loading após primeiro carregamento
+  const ls = document.getElementById("ls")
+  if(ls && ls.style.display !== "none"){
+    ls.style.opacity = "0"
+    setTimeout(() => ls.style.display = "none", 1000)
+  }
+  render()
 })
 
 function render(){
-  if(curAlbum) renderCards()
-  else         renderAlbums()
+  if(showFavs) renderFavs()
+  else if(curAlbum) renderCards()
+  else renderAlbums()
 }
 
 /* ---- ÁLBUNS ---- */
 function renderAlbums(){
   document.getElementById("navTitle").innerText = "Fotocards"
   document.getElementById("pageHeader").innerHTML = "<h2>Álbuns &amp; Eras</h2>"
-  document.getElementById("dragHint").style.display = "none"
-  document.getElementById("saveOrderBtn").style.display = "none"
 
   let html = '<div class="albums-grid">'
   albums.forEach(a => {
@@ -432,24 +445,16 @@ function renderAlbums(){
   document.getElementById("mainContent").innerHTML = html
 }
 
-window.openAlbum = id => { curAlbum = id; orderChanged = false; renderCards() }
+window.openAlbum = id => { curAlbum = id; renderCards() }
 
 /* ---- FOTOCARDS ---- */
-let selectedSlot = null;
-const TOTAL_SLOTS = 30;
-
 function renderCards(){
   const album = albums.find(a => a.id === curAlbum)
-  if(!album){
-    curAlbum = null
-    renderAlbums()
-    return
-  }
+  if(!album){ curAlbum = null; renderAlbums(); return }
 
-  let cards = fotocards.filter(c => c.albumId === curAlbum)
+  const cards = fotocards.filter(c => c.albumId === curAlbum)
 
   document.getElementById("navTitle").innerText = album.name
-
   document.getElementById("pageHeader").innerHTML = `
     <div style="display:flex;align-items:center;gap:14px;">
       <span style="cursor:pointer;opacity:.5;font-size:20px;" onclick="goBackToAlbums()">←</span>
@@ -458,52 +463,43 @@ function renderCards(){
     </div>
   `
 
-  document.getElementById("dragHint").style.display = "none"
-  document.getElementById("saveOrderBtn").style.display = "none"
-
   const grid = document.createElement("div")
   grid.className = "cards-grid"
 
   for(let slot = 0; slot < TOTAL_SLOTS; slot++){
-
     const cardData = cards.find(c => Number(c.slot) === slot)
 
     if(cardData){
-
       const card = document.createElement("div")
       card.className = "fotocard"
-
+      const isFav = favIds.includes(cardData.id)
       card.innerHTML = `
-        <img src="${cardData.img}">
+        <img src="${cardData.img}" alt="${cardData.name||''}">
         ${isAdmin ? `<div class="fotocard-del" onclick="delCard(event,'${cardData.id}')">✕</div>` : ""}
-        <div class="fotocard-label">${cardData.name || ""}</div>
+        <div class="fotocard-label">${isFav ? "♥ " : ""}${cardData.name || "Slot "+slot}</div>
       `
-
-      card.onclick = () => {
+      card.addEventListener("click", () => {
         lbList = cards.filter(c => c.img)
         const idx = lbList.findIndex(x => x.id === cardData.id)
-        openLb(idx)
-      }
-
+        openLb(idx >= 0 ? idx : 0)
+      })
       grid.appendChild(card)
 
-    }else{
-
+    } else {
       const empty = document.createElement("div")
       empty.className = "add-card"
-
-      empty.innerHTML = `
-        <span class="plus">+</span>
-        <span>Adicionar Fotocard</span>
-      `
-
       if(isAdmin){
-        empty.onclick = () => {
-          selectedSlot = slot
-          openAddCard()
-        }
+        empty.innerHTML = `<span class="plus">+</span><span>Slot ${slot + 1}</span>`
+        // CORREÇÃO PRINCIPAL: captura o slot num closure e chama openAddCard
+        ;(function(s){
+          empty.addEventListener("click", () => {
+            window._setSelectedSlot(s)
+            openAddCard()
+          })
+        })(slot)
+      } else {
+        empty.innerHTML = `<span style="font-size:28px;opacity:.2">📷</span><span>Vazio</span>`
       }
-
       grid.appendChild(empty)
     }
   }
@@ -512,141 +508,59 @@ function renderCards(){
   document.getElementById("mainContent").appendChild(grid)
 }
 
-/* ---- DRAG AND DROP ---- */
-function onDragStart(e){
-  dragSrc = this
-  // Pequeno delay para o browser capturar o ghost antes de esconder
-  setTimeout(() => this.classList.add("dragging"), 0)
-
-  // Adiciona classe no grid para desativar pointer-events nos filhos
-  const grid = document.getElementById("cardsGrid")
-  if(grid) grid.classList.add("is-dragging")
-
-  e.dataTransfer.effectAllowed = "move"
-  e.dataTransfer.setData("text/plain", this.dataset.id)
+/* ---- FAVORITOS ---- */
+window.toggleFavView = function(){
+  showFavs = !showFavs
+  if(!showFavs){ curAlbum = null }
+  render()
 }
 
-function onDragEnd(){
-  if(dragSrc) dragSrc.classList.remove("dragging")
-  dragSrc = null
-
-  const grid = document.getElementById("cardsGrid")
-  if(grid) grid.classList.remove("is-dragging")
-
-  document.querySelectorAll(".fotocard").forEach(c => c.classList.remove("drag-over"))
-}
-
-function onDragOver(e){
-  e.preventDefault()
-  e.dataTransfer.dropEffect = "move"
-  if(dragSrc && this !== dragSrc){
-    document.querySelectorAll(".fotocard").forEach(c => c.classList.remove("drag-over"))
-    this.classList.add("drag-over")
+function renderFavs(){
+  curAlbum = null
+  document.getElementById("navTitle").innerText = "Favoritos"
+  document.getElementById("pageHeader").innerHTML = `
+    <div style="display:flex;align-items:center;gap:14px;">
+      <h2>♥ Seus Favoritos</h2>
+      <span class="cards-count">${favIds.length} cards</span>
+    </div>
+  `
+  const favCards = fotocards.filter(c => favIds.includes(c.id))
+  if(!favCards.length){
+    document.getElementById("mainContent").innerHTML = `
+      <div style="text-align:center;opacity:.3;margin-top:80px;font-size:15px;">
+        Nenhum favorito ainda.<br>Abra um fotocard e clique em ♥ Favoritar
+      </div>`
+    return
   }
-}
-
-function onDragLeave(e){
-  // só remove se realmente saiu do card (não entrou num filho)
-  if(!this.contains(e.relatedTarget)){
-    this.classList.remove("drag-over")
-  }
-}
-
-function onDrop(e){
-  e.preventDefault()
-  e.stopPropagation()
-  this.classList.remove("drag-over")
-  if(!dragSrc || this === dragSrc) return
-
-  const grid = document.getElementById("cardsGrid")
-  const allCards = [...grid.querySelectorAll(".fotocard")]
-  const srcIdx  = allCards.indexOf(dragSrc)
-  const destIdx = allCards.indexOf(this)
-
-  if(srcIdx < destIdx){
-    grid.insertBefore(dragSrc, this.nextSibling)
-  } else {
-    grid.insertBefore(dragSrc, this)
-  }
-
-  orderChanged = true
-  document.getElementById("saveOrderBtn").style.display = "block"
-}
-
-/* ---- SALVAR ORDEM ---- */
-window.saveOrder = async function(){
-  const grid = document.getElementById("cardsGrid")
-  if(!grid) return
-  const cards = [...grid.querySelectorAll(".fotocard[data-id]")]
-  const btn = document.getElementById("saveOrderBtn")
-  btn.innerText = "Salvando..."
-  btn.style.background = "#444"
-  btn.style.animation = "none"
-
-  try {
-    const updates = {}
-    cards.forEach((el, i) => {
-      updates[`fotocards/${el.dataset.id}/order`] = i
+  const grid = document.createElement("div")
+  grid.className = "cards-grid"
+  favCards.forEach(cardData => {
+    const card = document.createElement("div")
+    card.className = "fotocard"
+    card.innerHTML = `
+      <img src="${cardData.img}" alt="${cardData.name||''}">
+      <div class="fotocard-label">♥ ${cardData.name || ""}</div>
+    `
+    card.addEventListener("click", () => {
+      lbList = favCards
+      const idx = favCards.findIndex(x => x.id === cardData.id)
+      openLb(idx >= 0 ? idx : 0)
     })
-    await update(ref(db), updates)
-
-    // Atualiza array local
-    cards.forEach((el, i) => {
-      const fc = fotocards.find(f => f.id === el.dataset.id)
-      if(fc) fc.order = i
-    })
-
-    btn.innerText = "✅ Salvo!"
-    btn.style.background = "#1a6a1a"
-    orderChanged = false
-
-    setTimeout(() => {
-      btn.style.display = "none"
-      btn.innerText = "💾 Salvar ordem"
-      btn.style.background = "#7c5cff"
-      btn.style.animation = "pulse 1.5s infinite"
-    }, 1800)
-  } catch(err){
-    btn.innerText = "❌ Erro"
-    btn.style.background = "#6a1a1a"
-    console.error(err)
-    setTimeout(() => {
-      btn.innerText = "💾 Salvar ordem"
-      btn.style.background = "#7c5cff"
-      btn.style.animation = "pulse 1.5s infinite"
-    }, 2000)
-  }
+    grid.appendChild(card)
+  })
+  document.getElementById("mainContent").innerHTML = ""
+  document.getElementById("mainContent").appendChild(grid)
 }
 
 /* ---- NAV ---- */
 window.goBack = function(){
-  if(curAlbum){ curAlbum = null; orderChanged = false; renderAlbums() }
+  if(showFavs){ showFavs = false; renderAlbums(); return }
+  if(curAlbum){ curAlbum = null; renderAlbums() }
   else { window.location.href = "home.html" }
 }
 window.goBackToAlbums = function(){
-  curAlbum = null; orderChanged = false
-  document.getElementById("saveOrderBtn").style.display = "none"
+  curAlbum = null
   renderAlbums()
-}
-
-/* ---- ADMIN ---- */
-window.toggleAdmin = function(){
-  if(isAdmin){
-    isAdmin = false
-    localStorage.removeItem("isAdmin")
-    refreshAdminPill()
-    render()
-    return
-  }
-  const key = prompt("Admin key:")
-  if(key === "12345"){
-    isAdmin = true
-    localStorage.setItem("isAdmin","true")
-    refreshAdminPill()
-    render()
-  } else if(key !== null){
-    alert("Acesso negado")
-  }
 }
 
 /* ---- CLOUDINARY ---- */
@@ -667,10 +581,11 @@ async function upload(file, onProg){
   })
 }
 
-/* ---- DROP ZONES (modais) ---- */
-function setupDrop(dropId, fileId, previewId, nameId, onFile){
+/* ---- DROP ZONES ---- */
+function setupDrop(dropId, fileId, onFile){
   const drop = document.getElementById(dropId)
   const inp  = document.getElementById(fileId)
+  if(!drop || !inp) return
   drop.addEventListener("dragover",  e => { e.preventDefault(); drop.classList.add("over") })
   drop.addEventListener("dragleave", ()  => drop.classList.remove("over"))
   drop.addEventListener("drop", e => {
@@ -680,18 +595,19 @@ function setupDrop(dropId, fileId, previewId, nameId, onFile){
   inp.addEventListener("change", () => { if(inp.files[0]) onFile(inp.files[0]) })
 }
 
-setupDrop("aDrop","aFile","aPreview","aFileName", f => {
+setupDrop("aDrop","aFile", f => {
   aFile = f
   document.getElementById("aFileName").innerText = f.name
   const p = document.getElementById("aPreview"); p.src = URL.createObjectURL(f); p.style.display = "block"
 })
-setupDrop("cDrop","cFile","cPreview","cFileName", f => {
+
+setupDrop("cDrop","cFile", f => {
   cFile = f
   document.getElementById("cFileName").innerText = f.name
   const p = document.getElementById("cPreview"); p.src = URL.createObjectURL(f); p.style.display = "block"
 })
 
-/* ---- ÁLBUM MODAL ---- */
+/* ---- MODAL ÁLBUM ---- */
 window.openAddAlbum = function(){
   aFile = null
   ;["aName","aArtist","aYear"].forEach(id => document.getElementById(id).value = "")
@@ -699,20 +615,36 @@ window.openAddAlbum = function(){
   document.getElementById("aPreview").style.display = "none"
   document.getElementById("aStatus").innerText = ""
   document.getElementById("aBar").style.display = "none"
+  document.getElementById("aFill").style.width = "0%"
   openModal("mAlbum")
 }
+
 window.submitAlbum = async function(){
   const name = document.getElementById("aName").value.trim()
   if(!name){ alert("Coloque o nome do álbum!"); return }
   const bar = document.getElementById("aBar"), fill = document.getElementById("aFill"), status = document.getElementById("aStatus")
   let cover = ""
+  const btn = document.querySelector("#mAlbum .b-save")
+  btn.disabled = true; btn.innerText = "Salvando..."
   try {
     if(aFile){ bar.style.display="block"; status.innerText="Enviando capa..."; cover = await upload(aFile, p => fill.style.width = p+"%") }
-    await push(albumsRef, { name, artist: document.getElementById("aArtist").value.trim()||"BTS", year: document.getElementById("aYear").value.trim(), cover })
-    status.innerText = "✅ Álbum criado!"; fill.style.width = "100%"
+    await push(albumsRef, {
+      name,
+      artist: document.getElementById("aArtist").value.trim() || "BTS",
+      year:   document.getElementById("aYear").value.trim(),
+      cover
+    })
+    status.innerText = "✅ Álbum criado!"
+    fill.style.width = "100%"
     setTimeout(() => closeModal("mAlbum"), 1200)
-  } catch(e){ status.innerText = "❌ Erro. Tente novamente."; console.error(e) }
+  } catch(e){
+    status.innerText = "❌ Erro. Tente novamente."
+    console.error(e)
+  } finally {
+    btn.disabled = false; btn.innerText = "CRIAR"
+  }
 }
+
 window.delAlbum = function(e, id){
   e.stopPropagation()
   if(!confirm("Remover este álbum e todos os fotocards?")) return
@@ -720,37 +652,72 @@ window.delAlbum = function(e, id){
   fotocards.filter(c => c.albumId === id).forEach(c => remove(ref(db,"fotocards/"+c.id)))
 }
 
-/* ---- CARD MODAL ---- */
+/* ---- MODAL FOTOCARD ---- */
 window.openAddCard = function(){
+  // Verifica se está dentro de um álbum
+  if(!curAlbum){ alert("Abra um álbum primeiro!"); return }
+
   cFile = null
   document.getElementById("cName").value = ""
   document.getElementById("cFileName").innerText = "Nenhum arquivo selecionado"
   document.getElementById("cPreview").style.display = "none"
   document.getElementById("cStatus").innerText = ""
   document.getElementById("cBar").style.display = "none"
-  const sel = document.getElementById("cAlbum")
-  sel.innerHTML = albums.map(a => `<option value="${a.id}">${a.name}</option>`).join("")
-  if(curAlbum) sel.value = curAlbum
+  document.getElementById("cFill").style.width = "0%"
+
+  const slot = window._getSelectedSlot()
+  document.getElementById("slotInfo").innerText =
+    slot !== null ? `Adicionando no slot ${slot + 1} de ${TOTAL_SLOTS}` : "Slot não selecionado"
+
   openModal("mCard")
 }
+
 window.submitCard = async function(){
-  const albumId = document.getElementById("cAlbum").value
-  if(!albumId || !cFile){ alert("Selecione o álbum e a imagem!"); return }
-  const bar = document.getElementById("cBar"), fill = document.getElementById("cFill"), status = document.getElementById("cStatus")
+  const slot = window._getSelectedSlot()
+
+  // Validações claras
+  if(slot === null || slot === undefined){
+    alert("Erro: slot não identificado. Feche e tente novamente.")
+    return
+  }
+  if(!curAlbum){
+    alert("Erro: álbum não identificado. Feche e tente novamente.")
+    return
+  }
+  if(!cFile){
+    alert("Selecione uma imagem para o fotocard!")
+    return
+  }
+
+  const bar    = document.getElementById("cBar")
+  const fill   = document.getElementById("cFill")
+  const status = document.getElementById("cStatus")
+  const btn    = document.querySelector("#mCard .b-save")
+
+  btn.disabled = true; btn.innerText = "Enviando..."
+  bar.style.display = "block"
+  status.innerText = "Enviando imagem..."
+
   try {
-    bar.style.display = "block"; status.innerText = "Enviando imagem..."
-    const img = await upload(cFile, p => fill.style.width = p+"%")
-    const currentCards = fotocards.filter(c => c.albumId === albumId)
+    const img = await upload(cFile, p => fill.style.width = p + "%")
     await push(cardsRef, {
-  albumId,
-  name: document.getElementById("cName").value.trim(),
-  img,
-  slot: selectedSlot
-})
-    status.innerText = "✅ Fotocard adicionado!"; fill.style.width = "100%"
+      albumId: curAlbum,
+      name:    document.getElementById("cName").value.trim(),
+      img,
+      slot:    slot
+    })
+    fill.style.width = "100%"
+    status.innerText = "✅ Fotocard adicionado!"
+    window._setSelectedSlot(null)
     setTimeout(() => closeModal("mCard"), 1200)
-  } catch(e){ status.innerText = "❌ Erro. Tente novamente."; console.error(e) }
+  } catch(e){
+    status.innerText = "❌ Erro no upload. Tente novamente."
+    console.error(e)
+  } finally {
+    btn.disabled = false; btn.innerText = "ENVIAR"
+  }
 }
+
 window.delCard = function(e, id){
   e.stopPropagation()
   if(!confirm("Remover este fotocard?")) return
@@ -759,23 +726,50 @@ window.delCard = function(e, id){
 
 /* ---- LIGHTBOX ---- */
 window.openLb = function(i){
-  lbIdx = i; updateLb()
+  lbIdx = i
+  updateLb()
   document.getElementById("lightbox").classList.add("open")
 }
 window.closeLb = () => document.getElementById("lightbox").classList.remove("open")
 window.lbClickBg = e => { if(e.target === document.getElementById("lightbox")) closeLb() }
-window.lbGo = function(dir){ lbIdx = (lbIdx+dir+lbList.length)%lbList.length; updateLb() }
+window.lbGo = function(dir){ lbIdx = (lbIdx+dir+lbList.length) % lbList.length; updateLb() }
+
 function updateLb(){
   const c = lbList[lbIdx]
+  if(!c) return
   document.getElementById("lbImg").src = c.img
   document.getElementById("lbInfo").innerText = (c.name||"")+" · "+(lbIdx+1)+" / "+lbList.length
+  // Atualiza botão favorito
+  const favBtn = document.querySelector(".lb-fav")
+  if(favBtn) favBtn.innerText = favIds.includes(c.id) ? "♥ Favoritado" : "♥ Favoritar"
 }
+
+window.toggleFav = function(){
+  const c = lbList[lbIdx]
+  if(!c) return
+  const idx = favIds.indexOf(c.id)
+  if(idx === -1) favIds.push(c.id)
+  else favIds.splice(idx, 1)
+  localStorage.setItem("favCards", JSON.stringify(favIds))
+  updateLb()
+}
+
+window.downloadCard = function(){
+  const c = lbList[lbIdx]
+  if(!c) return
+  const a = document.createElement("a")
+  a.href = c.img
+  a.download = (c.name || "fotocard") + ".jpg"
+  a.target = "_blank"
+  a.click()
+}
+
 document.addEventListener("keydown", e => {
   const lb = document.getElementById("lightbox")
   if(!lb.classList.contains("open")) return
-  if(e.key==="ArrowLeft") lbGo(-1)
+  if(e.key==="ArrowLeft")  lbGo(-1)
   if(e.key==="ArrowRight") lbGo(1)
-  if(e.key==="Escape") closeLb()
+  if(e.key==="Escape")     closeLb()
 })
 
 /* ---- MODAL HELPERS ---- */
