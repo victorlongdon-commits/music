@@ -154,7 +154,7 @@ text-align:center;
 
 <!-- Vídeo de fundo desfocado -->
 <video id="bgVideo" autoplay muted loop playsinline>
-  <source src="videos/center.mp4">
+  <source src="https://res.cloudinary.com/dlcg5zzes/video/upload/v1781380219/center_xjkxjc.mp4">
 </video>
 
 <div id="loading">
@@ -167,39 +167,39 @@ text-align:center;
 
 <!-- Quadros animados -->
 <div class="frame v1">
-  <video autoplay muted loop playsinline><source src="videos/video1.mp4"></video>
+  <video autoplay muted loop playsinline><source src="https://res.cloudinary.com/dlcg5zzes/video/upload/v1781380259/video1_kbxqsj.mp4"></video>
 </div>
 <div class="frame v2">
-  <video autoplay muted loop playsinline><source src="videos/video2.mp4"></video>
+  <video autoplay muted loop playsinline><source src="https://res.cloudinary.com/dlcg5zzes/video/upload/v1781380728/video2_tnoi2h.mp4"></video>
 </div>
 <div class="frame v3">
-  <video autoplay muted loop playsinline><source src="videos/video3.mp4"></video>
+  <video autoplay muted loop playsinline><source src="https://res.cloudinary.com/dlcg5zzes/video/upload/v1781380244/video3_ozqczl.mp4"></video>
 </div>
 <div class="frame v4">
-  <video autoplay muted loop playsinline><source src="videos/video4.mp4"></video>
+  <video autoplay muted loop playsinline><source src="https://res.cloudinary.com/dlcg5zzes/video/upload/v1781380249/video4_dxsakb.mp4"></video>
 </div>
 <div class="frame v5">
-  <video autoplay muted loop playsinline><source src="videos/video5.mp4"></video>
+  <video autoplay muted loop playsinline><source src="https://res.cloudinary.com/dlcg5zzes/video/upload/v1781380258/video5_ho60t4.mp4"></video>
 </div>
 <div class="frame v6">
-  <video autoplay muted loop playsinline><source src="videos/video6.mp4"></video>
+  <video autoplay muted loop playsinline><source src="https://res.cloudinary.com/dlcg5zzes/video/upload/v1781380276/video6_guyypn.mp4"></video>
 </div>
 <div class="frame v7">
-  <video autoplay muted loop playsinline><source src="videos/video7.mp4"></video>
+  <video autoplay muted loop playsinline><source src="https://res.cloudinary.com/dlcg5zzes/video/upload/v1781380257/video7_itezl5.mp4"></video>
 </div>
 <div class="frame v8">
-  <video autoplay muted loop playsinline><source src="videos/video8.mp4"></video>
+  <video autoplay muted loop playsinline><source src="https://res.cloudinary.com/dlcg5zzes/video/upload/v1781380729/video8_w0ctxc.mp4"></video>
 </div>
 <div class="frame v9">
-  <video autoplay muted loop playsinline><source src="videos/video9.mp4"></video>
+  <video autoplay muted loop playsinline><source src="https://res.cloudinary.com/dlcg5zzes/video/upload/v1781380726/video9_t4q6it.mp4"></video>
 </div>
 <div class="frame v10">
-  <video autoplay muted loop playsinline><source src="videos/video10.mp4"></video>
+  <video autoplay muted loop playsinline><source src="https://res.cloudinary.com/dlcg5zzes/video/upload/v1781380241/video10_smasin.mp4"></video>
 </div>
 
 <!-- Quadro central (destaque) -->
 <div class="frame center">
-  <video autoplay muted loop playsinline><source src="videos/center.mp4"></video>
+  <video autoplay muted loop playsinline><source src="https://res.cloudinary.com/dlcg5zzes/video/upload/v1781380219/center_xjkxjc.mp4"></video>
 </div>
 
 <div id="final"></div>
@@ -213,7 +213,6 @@ const curtain = document.getElementById("curtain")
 const startText = document.getElementById("startText")
 const frames = document.querySelectorAll(".frame")
 
-// Continua a música de onde o intro parou
 music.currentTime = Number(localStorage.getItem("musicTime") || 0)
 music.volume = .35
 music.play().catch(()=>{})
@@ -222,7 +221,6 @@ setInterval(()=>{
   localStorage.setItem("musicTime", music.currentTime)
 }, 500)
 
-// Barra de progresso — 10s
 let progress = 0
 const interval = setInterval(()=>{
   progress += 1
@@ -235,27 +233,22 @@ const interval = setInterval(()=>{
 
 function startIntro(){
 
-  // Fade out loading
   loading.style.opacity = "0"
   setTimeout(()=>{ loading.style.display = "none" }, 2000)
 
-  // Fade in cena
   setTimeout(()=>{
     curtain.style.opacity = "0"
     setTimeout(()=>{ curtain.style.display = "none" }, 2500)
   }, 1800)
 
-  // Frase
   setTimeout(()=>{ startText.style.opacity = "1" }, 2500)
   setTimeout(()=>{ startText.style.opacity = "0" }, 4500)
 
-  // Quadros aparecem em cascata
   const delays = [4000,4300,4500,4700,4800,5000,5100,5200,5300,5400,5500]
   frames.forEach((f,i)=>{
     setTimeout(()=>{ f.style.opacity = "1" }, delays[i] || 5500)
   })
 
-  // Final
   setTimeout(()=>{
     frames.forEach(v=>{ v.style.opacity = ".15" })
     const end = document.getElementById("final")
