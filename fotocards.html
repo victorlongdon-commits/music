@@ -452,6 +452,19 @@ button.navBtnPurple:hover{ background:#6a4dee; }
   transition:1s;
 }
 </style>
+<audio id="bgMusic" style="display:none"></audio>
+<script>
+  const _src = localStorage.getItem("musicSrc")
+  const _time = Number(localStorage.getItem("musicTime") || 0)
+  if(_src){
+    const a = document.getElementById("bgMusic")
+    a.src = _src
+    a.volume = 0.35
+    a.currentTime = _time
+    a.play().catch(()=>{})
+    setInterval(()=>{ localStorage.setItem("musicTime", a.currentTime) }, 500)
+  }
+</script>
 </head>
 <body>
 
