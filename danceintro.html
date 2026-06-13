@@ -1,110 +1,120 @@
 <!DOCTYPE html>
 <html>
+
 <head>
 <meta charset="UTF-8">
 <title>DANCE INTRO</title>
+
 <style>
-*{ margin:0; padding:0; box-sizing:border-box; }
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+}
 
 body{
-  background:black;
-  overflow:hidden;
-  height:100vh;
-  font-family:Arial;
+background:black;
+overflow:hidden;
+height:100vh;
+font-family:Arial;
 }
 
 #loading{
-  position:fixed;
-  inset:0;
-  background:black;
-  z-index:99999;
-  display:flex;
-  flex-direction:column;
-  justify-content:center;
-  align-items:center;
-  color:white;
-  gap:30px;
-  opacity:1;
-  transition:2s;
+position:fixed;
+inset:0;
+background:black;
+z-index:99999;
+display:flex;
+flex-direction:column;
+justify-content:center;
+align-items:center;
+color:white;
+gap:30px;
+opacity:1;
+transition:2s;
 }
 
-#loadingText{ font-size:18px; letter-spacing:8px; opacity:.6; }
+#loadingText{
+font-size:18px;
+letter-spacing:8px;
+opacity:.6;
+}
 
 #loadingBar{
-  width:280px; height:2px;
-  background:rgba(255,255,255,.15);
-  border-radius:99px;
-  overflow:hidden;
+width:280px;
+height:2px;
+background:rgba(255,255,255,.15);
+border-radius:99px;
+overflow:hidden;
 }
 
 #loadingFill{
-  height:100%; width:0%;
-  background:white;
-  border-radius:99px;
-  transition:.3s;
+height:100%;
+width:0%;
+background:white;
+border-radius:99px;
+transition:.3s;
 }
 
-#bgVideoEl{
-  position:fixed;
-  inset:0;
-  width:100%; height:100%;
-  filter:blur(35px) brightness(.3);
-  transform:scale(1.2);
-  z-index:-2;
-  object-fit:cover;
-  pointer-events:none;
+#bgVideo{
+position:fixed;
+inset:0;
+width:100%;
+height:100%;
+object-fit:cover;
+filter:blur(35px) brightness(.3);
+transform:scale(1.2);
+z-index:-2;
+pointer-events:none;
 }
 
 body::after{
-  content:"";
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.25);
-  z-index:-1;
+content:"";
+position:fixed;
+inset:0;
+background:rgba(0,0,0,.25);
+z-index:-1;
 }
 
 #curtain{
-  position:fixed;
-  inset:0;
-  background:black;
-  z-index:998;
-  opacity:1;
-  transition:2.5s ease;
-  pointer-events:none;
+position:fixed;
+inset:0;
+background:black;
+z-index:998;
+opacity:1;
+transition:2.5s ease;
+pointer-events:none;
 }
 
 #startText{
-  position:fixed;
-  top:50%;
-  left:50%;
-  transform:translate(-50%,-50%);
-  font-size:50px;
-  letter-spacing:8px;
-  color:white;
-  z-index:1000;
-  opacity:0;
-  transition:2s;
-  white-space:nowrap;
+position:fixed;
+top:50%;
+left:50%;
+transform:translate(-50%,-50%);
+font-size:50px;
+letter-spacing:8px;
+color:white;
+z-index:1000;
+opacity:0;
+transition:2s;
+white-space:nowrap;
 }
 
-/* Slots dos frames — mesmas posições do original */
 .frame{
-  position:absolute;
-  overflow:hidden;
-  border:3px solid white;
-  opacity:0;
-  transition:1.2s ease;
+position:absolute;
+overflow:hidden;
+border:3px solid white;
+opacity:0;
+transition:1.2s ease;
 }
 
 .frame video{
-  width:100%;
-  height:100%;
-  object-fit:cover;
-  pointer-events:none;
+width:100%;
+height:100%;
+object-fit:cover;
+pointer-events:none;
 }
-
-/* Placeholder quando não há vídeo suficiente */
-.frame.empty{ border-color:rgba(255,255,255,.1); }
 
 .center{ left:40%; top:2%; width:18vw; height:70vh; z-index:50; }
 .v1{ left:4%; top:18%; width:32vw; height:38vh; transform:rotate(-25deg); }
@@ -119,113 +129,91 @@ body::after{
 .v10{ right:0; top:50%; width:18vw; height:18vh; }
 
 #final{
-  position:fixed;
-  inset:0;
-  background:black;
-  display:none;
-  justify-content:center;
-  align-items:center;
-  flex-direction:column;
-  color:white;
-  z-index:99999;
-  opacity:0;
-  transition:3s;
-  text-align:center;
+position:fixed;
+inset:0;
+background:black;
+display:none;
+justify-content:center;
+align-items:center;
+flex-direction:column;
+color:white;
+z-index:99999;
+opacity:0;
+transition:3s;
+text-align:center;
 }
 
-/* Tela de fallback se não houver vídeos */
-#noVideos{
-  position:fixed;
-  inset:0;
-  background:black;
-  z-index:99998;
-  display:none;
-  flex-direction:column;
-  justify-content:center;
-  align-items:center;
-  color:white;
-  gap:16px;
-  text-align:center;
-}
-#noVideos p{ opacity:.45; font-size:14px; letter-spacing:2px; }
-#noVideos a{
-  margin-top:12px;
-  padding:12px 28px;
-  background:#7c5cff;
-  color:white;
-  text-decoration:none;
-  border-radius:10px;
-  font-size:14px;
-  letter-spacing:2px;
-}
 </style>
 </head>
+
 <body>
 
 <audio id="music">
   <source src="music/euphoria.mp3">
 </audio>
 
+<!-- Vídeo de fundo desfocado -->
+<video id="bgVideo" autoplay muted loop playsinline>
+  <source src="videos/center.mp4">
+</video>
+
 <div id="loading">
   <div id="loadingText">LOADING</div>
   <div id="loadingBar"><div id="loadingFill"></div></div>
 </div>
 
-<!-- Vídeo de fundo (puxado do Firebase) -->
-<video id="bgVideoEl" autoplay muted loop playsinline></video>
-
 <div id="curtain"></div>
 <div id="startText">EVERY MEMORY LEADS HERE</div>
 
-<!-- 11 frames (center + v1..v10) — preenchidos via JS -->
-<div class="frame center" id="slot_center"></div>
-<div class="frame v1"     id="slot_v1"></div>
-<div class="frame v2"     id="slot_v2"></div>
-<div class="frame v3"     id="slot_v3"></div>
-<div class="frame v4"     id="slot_v4"></div>
-<div class="frame v5"     id="slot_v5"></div>
-<div class="frame v6"     id="slot_v6"></div>
-<div class="frame v7"     id="slot_v7"></div>
-<div class="frame v8"     id="slot_v8"></div>
-<div class="frame v9"     id="slot_v9"></div>
-<div class="frame v10"    id="slot_v10"></div>
+<!-- Quadros animados -->
+<div class="frame v1">
+  <video autoplay muted loop playsinline><source src="videos/video1.mp4"></video>
+</div>
+<div class="frame v2">
+  <video autoplay muted loop playsinline><source src="videos/video2.mp4"></video>
+</div>
+<div class="frame v3">
+  <video autoplay muted loop playsinline><source src="videos/video3.mp4"></video>
+</div>
+<div class="frame v4">
+  <video autoplay muted loop playsinline><source src="videos/video4.mp4"></video>
+</div>
+<div class="frame v5">
+  <video autoplay muted loop playsinline><source src="videos/video5.mp4"></video>
+</div>
+<div class="frame v6">
+  <video autoplay muted loop playsinline><source src="videos/video6.mp4"></video>
+</div>
+<div class="frame v7">
+  <video autoplay muted loop playsinline><source src="videos/video7.mp4"></video>
+</div>
+<div class="frame v8">
+  <video autoplay muted loop playsinline><source src="videos/video8.mp4"></video>
+</div>
+<div class="frame v9">
+  <video autoplay muted loop playsinline><source src="videos/video9.mp4"></video>
+</div>
+<div class="frame v10">
+  <video autoplay muted loop playsinline><source src="videos/video10.mp4"></video>
+</div>
+
+<!-- Quadro central (destaque) -->
+<div class="frame center">
+  <video autoplay muted loop playsinline><source src="videos/center.mp4"></video>
+</div>
 
 <div id="final"></div>
 
-<div id="noVideos">
-  <div style="font-size:28px;letter-spacing:4px;">SEM VÍDEOS</div>
-  <p>Nenhum vídeo foi adicionado ainda.</p>
-  <a href="home.html">IR PARA HOME</a>
-</div>
-
-<script type="module">
-
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js"
-import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-database.js"
-
-const firebaseConfig = {
-  apiKey: "AIzaSyDFShfAw6VJ51hjka27gUebd9fna6o4yGw",
-  authDomain: "bts-archive-63f8b.firebaseapp.com",
-  databaseURL: "https://bts-archive-63f8b-default-rtdb.firebaseio.com",
-  projectId: "bts-archive-63f8b",
-  storageBucket: "bts-archive-63f8b.firebasestorage.app",
-  messagingSenderId: "995910359395",
-  appId: "1:995910359395:web:faa0858e7a44cf101f9b56"
-}
-
-const app = initializeApp(firebaseConfig)
-const db = getDatabase(app)
+<script>
 
 const music = document.getElementById("music")
 const loading = document.getElementById("loading")
 const loadingFill = document.getElementById("loadingFill")
 const curtain = document.getElementById("curtain")
 const startText = document.getElementById("startText")
+const frames = document.querySelectorAll(".frame")
 
-// Slots na ordem de aparição (center é o destaque)
-const SLOT_ORDER = ["center","v1","v2","v3","v4","v5","v6","v7","v8","v9","v10"]
-
-// Música continua de onde parou
+// Continua a música de onde o intro parou
 music.currentTime = Number(localStorage.getItem("musicTime") || 0)
 music.volume = .35
 music.play().catch(()=>{})
@@ -234,93 +222,24 @@ setInterval(()=>{
   localStorage.setItem("musicTime", music.currentTime)
 }, 500)
 
-// Carrega vídeos do Firebase
-let videos = []
-
-async function loadVideos(){
-  try {
-    const snapshot = await get(ref(db, "introVideos"))
-    if(snapshot.exists()){
-      snapshot.forEach(child => {
-        videos.push({ id: child.key, ...child.val() })
-      })
-    }
-  } catch(e){
-    console.warn("Erro ao carregar vídeos:", e)
-  }
-}
-
-// Preenche os slots com os vídeos disponíveis
-// Se houver menos de 11, reutiliza em loop
-function fillSlots(){
-  if(videos.length === 0) return false
-
-  // Vídeo de fundo = primeiro da lista (ou o marcado como "featured")
-  const featured = videos.find(v => v.featured) || videos[0]
-  document.getElementById("bgVideoEl").src = featured.url
-
-  // Preenche cada slot
-  SLOT_ORDER.forEach((slot, i) => {
-    const video = videos[i % videos.length]
-    const el = document.getElementById("slot_" + slot)
-    el.innerHTML = `<video autoplay muted loop playsinline src="${video.url}"></video>`
-  })
-
-  return true
-}
-
-// Barra de loading — aguarda Firebase + 10s mínimo
+// Barra de progresso — 10s
 let progress = 0
-let firebaseDone = false
-let minTimeDone = false
-
 const interval = setInterval(()=>{
-  // Avança mais rápido no início, mais devagar perto do fim
-  const increment = progress < 80 ? 1.2 : (firebaseDone ? 2 : 0.3)
-  progress = Math.min(progress + increment, firebaseDone ? 100 : 95)
-  loadingFill.style.width = progress + "%"
-
-  if(progress >= 100 && firebaseDone){
+  progress += 1
+  if(progress >= 100){
     clearInterval(interval)
     startIntro()
   }
+  loadingFill.style.width = progress + "%"
 }, 100)
 
-loadVideos().then(() => {
-  firebaseDone = true
-  // Se não houver vídeos, mostra tela de aviso
-  if(videos.length === 0){
-    loading.style.opacity = "0"
-    setTimeout(()=>{
-      loading.style.display = "none"
-      document.getElementById("noVideos").style.display = "flex"
-    }, 1500)
-    clearInterval(interval)
-  }
-})
-
-function makeVideoEl(url){
-  const v = document.createElement("video")
-  v.src = url
-  v.autoplay = true
-  v.muted = true
-  v.loop = true
-  v.playsInline = true
-  v.style.cssText = "width:100%;height:100%;object-fit:cover;"
-  return v
-}
-
 function startIntro(){
-  const hasVideos = fillSlots()
-  if(!hasVideos) return
-
-  const frames = document.querySelectorAll(".frame")
 
   // Fade out loading
   loading.style.opacity = "0"
   setTimeout(()=>{ loading.style.display = "none" }, 2000)
 
-  // Revela cena
+  // Fade in cena
   setTimeout(()=>{
     curtain.style.opacity = "0"
     setTimeout(()=>{ curtain.style.display = "none" }, 2500)
@@ -332,11 +251,11 @@ function startIntro(){
 
   // Quadros aparecem em cascata
   const delays = [4000,4300,4500,4700,4800,5000,5100,5200,5300,5400,5500]
-  frames.forEach((f, i)=>{
+  frames.forEach((f,i)=>{
     setTimeout(()=>{ f.style.opacity = "1" }, delays[i] || 5500)
   })
 
-  // Sequência final
+  // Final
   setTimeout(()=>{
     frames.forEach(v=>{ v.style.opacity = ".15" })
     const end = document.getElementById("final")
@@ -364,5 +283,6 @@ function startIntro(){
 }
 
 </script>
+
 </body>
 </html>
