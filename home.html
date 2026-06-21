@@ -368,7 +368,7 @@ transition:1.5s;
   </div>
   <div class="menu">
     <a href="fotocards.html" style="color:white;text-decoration:none;" onclick="localStorage.setItem('musicTime', player.currentTime); localStorage.setItem('musicSrc', player.src)">FOTOS</a>
-    <div>TURNÊS</div>
+    <a href="turnes.html" style="color:white;text-decoration:none;">TURNÊS</a>
     <div>ÁLBUNS</div>
     <img id="navAvatar" onclick="openProfile()" src="https://via.placeholder.com/40">
   </div>
@@ -851,18 +851,6 @@ window.saveProfile = async () => {
   }
 }
 
-// ADMIN
-window.checkAdmin = () => {
-  const key = prompt("Admin key:")
-  if(key === "12345"){
-    document.getElementById("adminBtn").style.display = "block"
-    document.getElementById("removeBtn").style.display = "block"
-    alert("Modo admin ativado!")
-  } else {
-    alert("Acesso negado")
-  }
-}
-
 // MODAL HELPERS
 window.openModal = (id) => { document.getElementById(id).style.display = "flex" }
 window.closeModal = (id) => { document.getElementById(id).style.display = "none" }
@@ -872,6 +860,7 @@ window.checkAdmin = () => {
   if(key === "12345"){
     document.getElementById("adminBtn").style.display = "block"
     document.getElementById("removeBtn").style.display = "block"
+    sessionStorage.setItem("isAdmin", "true")
     alert("Modo admin ativado!")
     // Adiciona botão pro intro admin
     const btn = document.createElement("a")
