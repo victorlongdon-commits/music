@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<meta charset="UTF-8">
+<title>LOCAL DA TURNÊ</title>
+
+<style>
+
+*{ box-sizing:border-box; }
+
+body{
+margin:0;
+font-family:Arial;
+color:white;
+background:#0b0b0b;
+min-height:100vh;
+}
+
+nav{
+height:70px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:0 20px;
+border-bottom:1px solid rgba(255,255,255,.1);
+gap:10px;
+}
+
+nav a{ color:white; text-decoration:none; }
+
+button{
+padding:10px 20px;
+border:none;
+border-radius:10px;
+cursor:pointer;
+background:#7c5cff;
+color:white;
+}
+
+#addPhotoBtn, #deleteStopBtn{ display:none; }
+
+#deleteStopBtn{ background:#a32d2d; }
+
+.page{
+max-width:900px;
+margin:0 auto;
+padding:40px 20px;
+}
+
+.header{ margin-bottom:30px; }
+
+.city{ font-size:32px; font-weight:bold; }
+
+.date{ font-size:15px; opacity:.6; margin-top:6px; }
+
+.section{ margin-bottom:30px; }
+
+.section h3{ font-size:15px; opacity:.6; margin-bottom:10px; text-transform:uppercase; letter-spacing:1px; }
+
+.section p{ line-height:1.6; white-space:pre-wrap; }
+
+.setlist li{ margin-bottom:4px; }
+
+.photoGrid{
+display:grid;
+grid-template-columns:repeat(auto-fill, minmax(180px, 1fr));
+gap:14px;
+}
+
+.photoGrid img{
+width:100%;
+height:180px;
+object-fit:cover;
+border-radius:12px;
+cursor:pointer;
+transition:.2s;
+}
+
+.photoGrid img:hover{ transform:scale(1.03); }
+
+.emptyPhotos{ opacity:.5; padding:20px 0; }
+
+/* Lightbox */
+#lightbox{
+position:fixed;
+inset:0;
+background:rgba(0,0,0,.92);
+display:none;
+z-index:999;
+justify-content:center;
+align-items:center;
+}
+
+#lightbox img{ max-width:90%; max-height:90%; border-radius:10px; }
+
+#lightbox .close{
+position:absolute;
+top:20px; right:30px;
+font-size:36px;
+cursor:pointer;
+}
+
+/* MODAL ADD FOTO */
+.modal{
+position:fixed;
+inset:0;
+background:rgba(0,0,0,.85);
+display:none;
+z-index:999;
+justify-content:center;
+align-items:center;
+}
+
+.modalBox{
+background:#111;
+border-radius:20px;
+padding:30px;
+width:460px;
+max-height:90vh;
+overflow-y:auto;
+}
+
+.modalBox h2{ margin-bottom:20px; }
+
+.dropZone{
+border:2px dashed rgba(255,255,255,.3);
+border-radius:15px;
+padding:30px;
+text-align:center;
+cursor:pointer;
+transition:.3s;
+margin-bottom:15px;
+}
+
+.dropZone:hover{ border-color:white; background:rgba(255,255,255,.05); }
+
+.dropZone p{ opacity:.6; font-size:14px; margin-top:8px; }
+
+.progressBar{ width:100%; height:4px; background:rgba(255,255,255,.1); border-radius:99px; overflow:hidden; margin-top:10px; display:none; }
+
+.progressFill{ height:100%; background:#7c5cff; width:0%; transition:.3s; }
+
+.btnRow{ display:flex; gap:10px; margin-top:10px; }
+
+.btnPrimary{ flex:1; padding:12px; border:none; border-radius:10px; background:#7c5cff; color:white; font-size:15px; cursor:pointer; }
+
+.btnSecondaryModal{ flex:1; padding:12px; border:none; border-radius:10px; background:#333; color:white; font-size:15px; cursor:pointer; }
+
+</style>
+</head>
+
+<body>
+
+<nav>
+  <a href="#" id="backLink">← VOLTAR PARA ROTA</a>
+  <div style="display:flex; gap:10px;">
+    <button id="addPhotoBtn" onclick="openAddPhoto()">+ FOTOS</button>
+    <button id="deleteStopBtn" onclick="deleteStop()">REMOVER LOCAL</button>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="header">
+    <div class="city" id="cityName">Carregando...</div>
+    <div class="date" id="showDate"></div>
+  </div>
+
+  <div class="section" id="descSection" style="display:none;">
+    <h3>Sobre o show</h3>
+    <p id="description"></p>
+  </div>
+
+  <div class="section" id="setlistSection" style="display:none;">
+    <h3>Setlist</h3>
+    <ul class="setlist" id="setlistList"></ul>
+  </div>
+
+  <div class="section">
+    <h3>Fotos</h3>
+    <div class="photoGrid" id="photoGrid"></div>
+    <div class="emptyPhotos" id="emptyPhotos" style="display:none;">Nenhuma foto adicionada ainda.</div>
+  </div>
+</div>
+
+<div id="lightbox" onclick="closeLightbox()">
+  <div class="close">×</div>
+  <img id="lightboxImg">
+</div>
+
+<!-- MODAL ADD FOTO -->
+<div class="modal" id="addPhotoModal">
+  <div class="modalBox">
+    <h2>📸 Adicionar Fotos</h2>
+
+    <div class="dropZone" id="photoZone" onclick="document.getElementById('photoInput').click()">
+      🖼️ Arraste as fotos aqui ou clique para selecionar
+      <p id="photoZoneName">Nenhum arquivo</p>
+    </div>
+    <input type="file" id="photoInput" accept="image/*" multiple style="display:none">
+
+    <div class="progressBar" id="photoUploadProgress">
+      <div class="progressFill" id="photoUploadFill"></div>
+    </div>
+    <p id="photoUploadStatus" style="font-size:13px;opacity:.6;margin-top:6px;"></p>
+
+    <div class="btnRow">
+      <button class="btnPrimary" onclick="submitPhotos()">ENVIAR</button>
+      <button class="btnSecondaryModal" onclick="closeModal('addPhotoModal')">CANCELAR</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js"
+import { getDatabase, ref, onValue, update, remove } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-database.js"
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDFShfAw6VJ51hjka27gUebd9fna6o4yGw",
+  authDomain: "bts-archive-63f8b.firebaseapp.com",
+  databaseURL: "https://bts-archive-63f8b-default-rtdb.firebaseio.com",
+  projectId: "bts-archive-63f8b",
+  storageBucket: "bts-archive-63f8b.firebasestorage.app",
+  messagingSenderId: "995910359395",
+  appId: "1:995910359395:web:faa0858e7a44cf101f9b56"
+}
+
+const app = initializeApp(firebaseConfig)
+const db = getDatabase(app)
+
+const params = new URLSearchParams(window.location.search)
+const tourId = params.get("tour")
+const stopId = params.get("stop")
+
+if(!tourId || !stopId){
+  window.location.href = "turnes.html"
+}
+
+document.getElementById("backLink").href = `turne.html?id=${tourId}`
+
+const stopRef = ref(db, `tours/${tourId}/stops/${stopId}`)
+const isAdmin = sessionStorage.getItem("isAdmin") === "true"
+if(isAdmin){
+  document.getElementById("addPhotoBtn").style.display = "block"
+  document.getElementById("deleteStopBtn").style.display = "block"
+}
+
+let currentPhotos = []
+let newFiles = []
+
+const CLOUDINARY_CLOUD = "dlcg5zzes"
+const CLOUDINARY_PRESET = "bts_upload"
+
+onValue(stopRef, (snapshot) => {
+  const stop = snapshot.val()
+  if(!stop){
+    window.location.href = `turne.html?id=${tourId}`
+    return
+  }
+
+  document.getElementById("cityName").innerText = stop.city
+  document.getElementById("showDate").innerText = stop.date ? formatDate(stop.date) : ""
+
+  if(stop.description){
+    document.getElementById("descSection").style.display = "block"
+    document.getElementById("description").innerText = stop.description
+  }
+
+  if(stop.setlist){
+    document.getElementById("setlistSection").style.display = "block"
+    const list = document.getElementById("setlistList")
+    list.innerHTML = ""
+    stop.setlist.split("\n").filter(l => l.trim()).forEach(line => {
+      const li = document.createElement("li")
+      li.innerText = line.trim()
+      list.appendChild(li)
+    })
+  }
+
+  currentPhotos = stop.photos || []
+  renderPhotos()
+})
+
+function formatDate(d){
+  const [y,m,day] = d.split("-")
+  return `${day}/${m}/${y}`
+}
+
+function renderPhotos(){
+  const grid = document.getElementById("photoGrid")
+  grid.innerHTML = ""
+  document.getElementById("emptyPhotos").style.display = currentPhotos.length === 0 ? "block" : "none"
+
+  currentPhotos.forEach((url) => {
+    const img = document.createElement("img")
+    img.src = url
+    img.onclick = () => openLightbox(url)
+    grid.appendChild(img)
+  })
+}
+
+window.openLightbox = (url) => {
+  document.getElementById("lightboxImg").src = url
+  document.getElementById("lightbox").style.display = "flex"
+}
+
+window.closeLightbox = () => {
+  document.getElementById("lightbox").style.display = "none"
+}
+
+async function uploadToCloudinary(file, onProgress){
+  return new Promise((resolve, reject) => {
+    const formData = new FormData()
+    formData.append("file", file)
+    formData.append("upload_preset", CLOUDINARY_PRESET)
+    formData.append("resource_type", "image")
+
+    const xhr = new XMLHttpRequest()
+    xhr.open("POST", `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`)
+
+    xhr.upload.onprogress = (e) => {
+      if(e.lengthComputable) onProgress(Math.round(e.loaded / e.total * 100))
+    }
+
+    xhr.onload = () => {
+      const res = JSON.parse(xhr.responseText)
+      if(res.secure_url) resolve(res.secure_url)
+      else reject(res)
+    }
+
+    xhr.onerror = reject
+    xhr.send(formData)
+  })
+}
+
+const zone = document.getElementById("photoZone")
+const input = document.getElementById("photoInput")
+
+zone.addEventListener("dragover", (e) => { e.preventDefault(); zone.classList.add("over") })
+zone.addEventListener("dragleave", () => zone.classList.remove("over"))
+zone.addEventListener("drop", (e) => {
+  e.preventDefault()
+  zone.classList.remove("over")
+  handleFiles(e.dataTransfer.files)
+})
+input.addEventListener("change", () => handleFiles(input.files))
+
+function handleFiles(files){
+  newFiles = Array.from(files)
+  document.getElementById("photoZoneName").innerText = `${newFiles.length} arquivo(s) selecionado(s)`
+}
+
+window.openAddPhoto = () => {
+  newFiles = []
+  document.getElementById("photoZoneName").innerText = "Nenhum arquivo"
+  document.getElementById("photoUploadStatus").innerText = ""
+  document.getElementById("photoUploadProgress").style.display = "none"
+  openModal("addPhotoModal")
+}
+
+window.submitPhotos = async () => {
+  if(newFiles.length === 0){
+    alert("Selecione pelo menos uma foto!")
+    return
+  }
+
+  const progress = document.getElementById("photoUploadProgress")
+  const fill = document.getElementById("photoUploadFill")
+  const status = document.getElementById("photoUploadStatus")
+  progress.style.display = "block"
+
+  try {
+    const uploaded = []
+    for(let i = 0; i < newFiles.length; i++){
+      status.innerText = `Enviando foto ${i+1} de ${newFiles.length}...`
+      const url = await uploadToCloudinary(newFiles[i], p => {
+        const overall = ((i + p/100) / newFiles.length) * 100
+        fill.style.width = overall + "%"
+      })
+      uploaded.push(url)
+    }
+
+    const allPhotos = [...currentPhotos, ...uploaded]
+    await update(stopRef, { photos: allPhotos })
+
+    status.innerText = "✅ Fotos adicionadas!"
+    setTimeout(() => closeModal("addPhotoModal"), 1000)
+  } catch(err){
+    status.innerText = "❌ Erro no upload. Tente novamente."
+    console.error(err)
+  }
+}
+
+window.deleteStop = async () => {
+  if(!confirm("Remover este local da turnê? Essa ação não pode ser desfeita.")) return
+  await remove(stopRef)
+  window.location.href = `turne.html?id=${tourId}`
+}
+
+window.openModal = (id) => { document.getElementById(id).style.display = "flex" }
+window.closeModal = (id) => { document.getElementById(id).style.display = "none" }
+
+</script>
+
+</body>
+</html>

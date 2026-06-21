@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<meta charset="UTF-8">
+<title>TURNÊS</title>
+
+<style>
+
+*{ box-sizing:border-box; }
+
+body{
+margin:0;
+font-family:Arial;
+color:white;
+background:#0b0b0b;
+min-height:100vh;
+}
+
+nav{
+height:70px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:0 20px;
+border-bottom:1px solid rgba(255,255,255,.1);
+gap:10px;
+}
+
+.menu{ display:flex; gap:20px; align-items:center; }
+
+nav a{ color:white; text-decoration:none; }
+
+button{
+padding:10px 20px;
+border:none;
+border-radius:10px;
+cursor:pointer;
+background:#7c5cff;
+color:white;
+}
+
+.btnSecondary{ background:#333; }
+
+.page{
+max-width:1000px;
+margin:0 auto;
+padding:40px 20px;
+}
+
+h1{ font-size:30px; margin-bottom:30px; }
+
+.grid{
+display:grid;
+grid-template-columns:repeat(auto-fill, minmax(220px, 1fr));
+gap:20px;
+}
+
+.tourCard{
+background:#161616;
+border-radius:16px;
+overflow:hidden;
+cursor:pointer;
+transition:.2s;
+border:1px solid rgba(255,255,255,.05);
+}
+
+.tourCard:hover{ transform:translateY(-4px); border-color:rgba(255,255,255,.2); }
+
+.tourCard img{
+width:100%;
+height:180px;
+object-fit:cover;
+display:block;
+background:#222;
+}
+
+.tourCard .info{ padding:14px; }
+
+.tourCard .name{ font-size:17px; font-weight:bold; }
+
+.tourCard .stops{ font-size:13px; opacity:.6; margin-top:4px; }
+
+.empty{ opacity:.5; padding:60px 0; text-align:center; }
+
+/* MODAL */
+.modal{
+position:fixed;
+inset:0;
+background:rgba(0,0,0,.85);
+display:none;
+z-index:999;
+justify-content:center;
+align-items:center;
+}
+
+.modalBox{
+background:#111;
+border-radius:20px;
+padding:30px;
+width:460px;
+max-height:90vh;
+overflow-y:auto;
+}
+
+.modalBox h2{ margin-bottom:20px; }
+
+.inputField{
+width:100%;
+padding:12px;
+border-radius:10px;
+border:none;
+background:#1a1a1a;
+color:white;
+font-size:15px;
+margin-bottom:12px;
+}
+
+.dropZone{
+border:2px dashed rgba(255,255,255,.3);
+border-radius:15px;
+padding:30px;
+text-align:center;
+cursor:pointer;
+transition:.3s;
+margin-bottom:15px;
+}
+
+.dropZone:hover{ border-color:white; background:rgba(255,255,255,.05); }
+
+.dropZone p{ opacity:.6; font-size:14px; margin-top:8px; }
+
+.previewImg{
+width:80px; height:80px;
+border-radius:10px;
+object-fit:cover;
+margin-top:10px;
+display:none;
+}
+
+.btnRow{ display:flex; gap:10px; margin-top:10px; }
+
+.btnPrimary{ flex:1; padding:12px; border:none; border-radius:10px; background:#7c5cff; color:white; font-size:15px; cursor:pointer; }
+
+.btnSecondaryModal{ flex:1; padding:12px; border:none; border-radius:10px; background:#333; color:white; font-size:15px; cursor:pointer; }
+
+.progressBar{ width:100%; height:4px; background:rgba(255,255,255,.1); border-radius:99px; overflow:hidden; margin-top:10px; display:none; }
+
+.progressFill{ height:100%; background:#7c5cff; width:0%; transition:.3s; }
+
+#addTourBtn{ display:none; }
+
+</style>
+</head>
+
+<body>
+
+<nav>
+  <a href="home.html">← VOLTAR</a>
+  <div class="menu">
+    <a href="fotocards.html">FOTOS</a>
+    <a href="turnes.html" style="opacity:.6;">TURNÊS</a>
+    <a href="home.html#albuns">ÁLBUNS</a>
+  </div>
+  <button id="addTourBtn" onclick="openAddTour()">+ TURNÊ</button>
+</nav>
+
+<div class="page">
+  <h1>Turnês</h1>
+  <div class="grid" id="toursGrid"></div>
+  <div class="empty" id="emptyMsg" style="display:none;">Nenhuma turnê cadastrada ainda.</div>
+</div>
+
+<!-- MODAL ADICIONAR TURNÊ -->
+<div class="modal" id="addTourModal">
+  <div class="modalBox">
+    <h2>🛫 Nova Turnê</h2>
+
+    <label>Nome da turnê</label>
+    <input class="inputField" id="tourName" placeholder="Ex: The Eras Tour">
+
+    <label>Capa da turnê</label>
+    <div class="dropZone" id="tourCoverZone" onclick="document.getElementById('tourCoverInput').click()">
+      🖼️ Arraste a imagem aqui ou clique para selecionar
+      <p id="tourCoverName">Nenhum arquivo</p>
+      <img class="previewImg" id="tourCoverPreview">
+    </div>
+    <input type="file" id="tourCoverInput" accept="image/*" style="display:none">
+
+    <label>Cores do tema (fundo em degradê)</label>
+    <div style="display:flex; gap:12px; margin-bottom:12px;">
+      <div style="flex:1;">
+        <input type="color" id="tourColorStart" value="#f5e6d3" style="width:100%; height:44px; border:none; border-radius:10px; cursor:pointer; background:#1a1a1a;">
+        <p style="font-size:12px; opacity:.5; margin:4px 0 0;">Cor 1</p>
+      </div>
+      <div style="flex:1;">
+        <input type="color" id="tourColorEnd" value="#d9c4e8" style="width:100%; height:44px; border:none; border-radius:10px; cursor:pointer; background:#1a1a1a;">
+        <p style="font-size:12px; opacity:.5; margin:4px 0 0;">Cor 2</p>
+      </div>
+    </div>
+
+    <div class="progressBar" id="tourUploadProgress">
+      <div class="progressFill" id="tourUploadFill"></div>
+    </div>
+    <p id="tourUploadStatus" style="font-size:13px;opacity:.6;margin-top:6px;"></p>
+
+    <div class="btnRow">
+      <button class="btnPrimary" onclick="submitTour()">CRIAR TURNÊ</button>
+      <button class="btnSecondaryModal" onclick="closeModal('addTourModal')">CANCELAR</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js"
+import { getDatabase, ref, onValue, push } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-database.js"
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDFShfAw6VJ51hjka27gUebd9fna6o4yGw",
+  authDomain: "bts-archive-63f8b.firebaseapp.com",
+  databaseURL: "https://bts-archive-63f8b-default-rtdb.firebaseio.com",
+  projectId: "bts-archive-63f8b",
+  storageBucket: "bts-archive-63f8b.firebasestorage.app",
+  messagingSenderId: "995910359395",
+  appId: "1:995910359395:web:faa0858e7a44cf101f9b56"
+}
+
+const app = initializeApp(firebaseConfig)
+const db = getDatabase(app)
+const toursRef = ref(db, "tours")
+
+const CLOUDINARY_CLOUD = "dlcg5zzes"
+const CLOUDINARY_PRESET = "bts_upload"
+
+let coverFile = null
+
+if(sessionStorage.getItem("isAdmin") === "true"){
+  document.getElementById("addTourBtn").style.display = "block"
+}
+
+onValue(toursRef, (snapshot) => {
+  const grid = document.getElementById("toursGrid")
+  const emptyMsg = document.getElementById("emptyMsg")
+  grid.innerHTML = ""
+  let count = 0
+
+  snapshot.forEach(child => {
+    count++
+    const tour = child.val()
+    const stopsCount = tour.stops ? Object.keys(tour.stops).length : 0
+    const card = document.createElement("div")
+    card.className = "tourCard"
+    card.onclick = () => { window.location.href = `turne.html?id=${child.key}` }
+    const bgStyle = tour.colorStart && tour.colorEnd ? `background:linear-gradient(135deg, ${tour.colorStart}, ${tour.colorEnd});` : ""
+    card.innerHTML = `
+      <img src="${tour.cover || ''}" style="${bgStyle}" onerror="this.src='https://via.placeholder.com/220x180'">
+      <div class="info">
+        <div class="name">${tour.name}</div>
+        <div class="stops">${stopsCount} local${stopsCount === 1 ? '' : 'is'}</div>
+      </div>
+    `
+    grid.appendChild(card)
+  })
+
+  emptyMsg.style.display = count === 0 ? "block" : "none"
+})
+
+async function uploadToCloudinary(file, onProgress){
+  return new Promise((resolve, reject) => {
+    const formData = new FormData()
+    formData.append("file", file)
+    formData.append("upload_preset", CLOUDINARY_PRESET)
+    formData.append("resource_type", "image")
+
+    const xhr = new XMLHttpRequest()
+    xhr.open("POST", `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`)
+
+    xhr.upload.onprogress = (e) => {
+      if(e.lengthComputable) onProgress(Math.round(e.loaded / e.total * 100))
+    }
+
+    xhr.onload = () => {
+      const res = JSON.parse(xhr.responseText)
+      if(res.secure_url) resolve(res.secure_url)
+      else reject(res)
+    }
+
+    xhr.onerror = reject
+    xhr.send(formData)
+  })
+}
+
+function setupDrop(zoneId, inputId, onFile){
+  const zone = document.getElementById(zoneId)
+  const input = document.getElementById(inputId)
+
+  zone.addEventListener("dragover", (e) => { e.preventDefault(); zone.classList.add("over") })
+  zone.addEventListener("dragleave", () => zone.classList.remove("over"))
+  zone.addEventListener("drop", (e) => {
+    e.preventDefault()
+    zone.classList.remove("over")
+    const file = e.dataTransfer.files[0]
+    if(file) onFile(file)
+  })
+  input.addEventListener("change", () => {
+    if(input.files[0]) onFile(input.files[0])
+  })
+}
+
+setupDrop("tourCoverZone", "tourCoverInput", (file) => {
+  coverFile = file
+  document.getElementById("tourCoverName").innerText = file.name
+  const preview = document.getElementById("tourCoverPreview")
+  preview.src = URL.createObjectURL(file)
+  preview.style.display = "block"
+})
+
+window.openAddTour = () => {
+  coverFile = null
+  document.getElementById("tourName").value = ""
+  document.getElementById("tourCoverName").innerText = "Nenhum arquivo"
+  document.getElementById("tourCoverPreview").style.display = "none"
+  document.getElementById("tourUploadStatus").innerText = ""
+  document.getElementById("tourUploadProgress").style.display = "none"
+  openModal("addTourModal")
+}
+
+window.submitTour = async () => {
+  const name = document.getElementById("tourName").value.trim()
+  if(!name || !coverFile){
+    alert("Preencha o nome e a capa da turnê!")
+    return
+  }
+
+  const progress = document.getElementById("tourUploadProgress")
+  const fill = document.getElementById("tourUploadFill")
+  const status = document.getElementById("tourUploadStatus")
+  progress.style.display = "block"
+
+  const colorStart = document.getElementById("tourColorStart").value
+  const colorEnd = document.getElementById("tourColorEnd").value
+
+  try {
+    status.innerText = "Enviando capa..."
+    const coverUrl = await uploadToCloudinary(coverFile, p => fill.style.width = p + "%")
+    await push(toursRef, { name, cover: coverUrl, colorStart, colorEnd, stops: {} })
+    status.innerText = "✅ Turnê criada!"
+    setTimeout(() => closeModal("addTourModal"), 1200)
+  } catch(err){
+    status.innerText = "❌ Erro no upload. Tente novamente."
+    console.error(err)
+  }
+}
+
+window.openModal = (id) => { document.getElementById(id).style.display = "flex" }
+window.closeModal = (id) => { document.getElementById(id).style.display = "none" }
+
+</script>
+
+</body>
+</html>
