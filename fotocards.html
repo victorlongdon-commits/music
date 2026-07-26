@@ -461,7 +461,19 @@ button.navBtnPurple:hover{ background:#6a4dee; }
     a.src = _src
     a.volume = 0.35
     a.currentTime = _time
-    a.play().catch(()=>{})
+
+    // Tenta tocar direto
+    a.play().catch(() => {
+      // Se o browser bloquear, espera o primeiro clique
+      const unlock = () => {
+        a.play().catch(()=>{})
+        document.removeEventListener("click", unlock)
+        document.removeEventListener("touchstart", unlock)
+      }
+      document.addEventListener("click", unlock)
+      document.addEventListener("touchstart", unlock)
+    })
+
     setInterval(()=>{ localStorage.setItem("musicTime", a.currentTime) }, 500)
   }
 </script>
